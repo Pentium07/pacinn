@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+
+@theme {
+  --color-pryClr: #000814;
+  --color-secClr: #F0CB46;
+  --color-trdClr: #003566;
+  --color-tetClr: #CCA000;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+    .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .animate-scrollRightToLeft {
+            display: flex;
+            animation: scrollRightToLeft 20s linear infinite;
+          }
+          @keyframes scrollRightToLeft {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-50%);
+            }
+          }

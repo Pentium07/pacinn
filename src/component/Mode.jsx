@@ -2,7 +2,7 @@ import React from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
-const Layout = ({ children }) => {
+const Mode = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Navbar overlays on top */}
@@ -18,4 +18,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
+export default Mode;

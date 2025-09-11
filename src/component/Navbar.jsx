@@ -203,7 +203,7 @@ const Navbar = () => {
           {/* Footer */}
           <div className="p-6 border-t border-gray-200 text-center text-sm text-gray-500">
             <p>© Pac Inn</p>
-            <p className="mt-1">All rights reserved</p>
+            <p className="mt-1">All rights reserved.</p>
           </div>
         </div>
       </div>

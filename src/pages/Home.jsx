@@ -404,7 +404,7 @@ const Home = () => {
                 </p>
                 <p className="flex items-center gap-3">
                   <FaEnvelope className=" flex-shrink-0 w-5 h-5 text-trdClr" />
-                  info@pacinn.com
+                  pacinn21@gmail.com
                 </p>
                 <div className="flex gap-6 mt-6 justify-center">
                   <NavLink

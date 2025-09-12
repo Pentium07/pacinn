@@ -53,19 +53,19 @@ const Footer = () => {
                   <div className="mt-1 p-2 bg-[#001D3D] rounded-md">
                     <FaMapMarkerAlt className="w-4 h-4 text-[#F0CB46]" />
                   </div>
-                  <p>Pac Inn Hotel, 350 5th Ave, New York, NY 10118</p>
+                  <p>Pac Inn, Under G, Ogbomosho, Oyo State, Nigeria</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-[#001D3D] rounded-md">
                     <FaPhoneAlt className="w-4 h-4 text-[#F0CB46]" />
                   </div>
-                  <p>(212) 555-1234</p>
+                  <p>0912 817 0788</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-[#001D3D] rounded-md">
                     <FaEnvelope className="w-4 h-4 text-[#F0CB46]" />
                   </div>
-                  <p>info@pacinn.com</p>
+                  <p>pacinn21@gmail.com</p>
                 </div>
               </div>
             </div>

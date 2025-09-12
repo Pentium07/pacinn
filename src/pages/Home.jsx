@@ -102,68 +102,44 @@ const Home = () => {
   ];
 
 
-  const testimonials = [
-    {
-      id: 1,
-      name: "Emma Thompson",
-      review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
-    },
-    {
-      id: 2,
-      name: "James Carter",
-      review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
-    },
-    {
-      id: 3,
-      name: "Sophia Nguyen",
-      review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
-    },
-    {
-      id: 4,
-      name: "Liam Brooks",
-      review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
-    },
-    {
-      id: 5,
-      name: "Olivia Patel",
-      review: "A perfect blend of elegance and comfort. The staff went above and beyond to make our stay special.",
-    },
-    {
-      id: 6,
-      name: "Noah Kim",
-      review: "Incredible experience! The atmosphere was vibrant, and the service was impeccable. Can't wait to return!",
-    },
-  ];
+const testimonials = [
+  {
+    id: 1,
+    name: "Chinelo Okafor",
+    review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
+  },
+  {
+    id: 2,
+    name: "Emeka Nwosu",
+    review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
+  },
+  {
+    id: 3,
+    name: "Amina Bello",
+    review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
+  },
+  {
+    id: 4,
+    name: "Tunde Adeyemi",
+    review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
+  },
+  {
+    id: 5,
+    name: "Funke Balogun",
+    review: "A perfect blend of elegance and comfort. The staff went above and beyond to make our stay special.",
+  },
+  {
+    id: 6,
+    name: "Ifeanyi Okeke",
+    review: "Incredible experience! The atmosphere was vibrant, and the service was impeccable. Can't wait to return!",
+  },
+];
 
 
-  // const scrollRef = useRef(null);
 
-  // useEffect(() => {
-  //   const scrollContainer = scrollRef.current;
-  //   if (!scrollContainer) return;
-
-  //   // Duplicate testimonials for seamless looping
-  //   const totalWidth = scrollContainer.scrollWidth / 2; // Half due to duplication
-  //   let scrollAmount = totalWidth; // Start at the end for right-to-left
-  //   const scrollSpeed = 0.4; // Slower for smoother scrolling
-
-  //   const autoScroll = () => {
-  //     if (scrollContainer) {
-  //       scrollAmount -= scrollSpeed; // Move right to left
-  //       scrollContainer.scrollLeft = scrollAmount;
-
-  //       // Reset for infinite loop
-  //       if (scrollAmount <= 0) {
-  //         scrollAmount = totalWidth;
-  //         scrollContainer.scrollLeft = scrollAmount; // Instantly reset to avoid skip
-  //       }
-  //     }
-  //     requestAnimationFrame(autoScroll); // Smooth continuous animation
-  //   };
-
-  //   const animationId = requestAnimationFrame(autoScroll);
-  //   return () => cancelAnimationFrame(animationId); // Cleanup
-  // }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
 
 
   return (

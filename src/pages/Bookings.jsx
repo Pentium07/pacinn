@@ -9,6 +9,11 @@ const Bookings = () => {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
+
+    useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  
   // Prevent background scrolling when modal is open
   useEffect(() => {
     if (selectedRoom) {
@@ -108,7 +113,7 @@ const Bookings = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 py-12 w-full pt-26">
+    <div className="min-h-screen bg-trdClr/15 py-12 w-full pt-26">
       <div className="w-[90%] mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Luxury Accommodations</h1>

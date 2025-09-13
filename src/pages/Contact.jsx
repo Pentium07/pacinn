@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaWhatsapp, FaTwitter, FaInstagram } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 
 const Contact = () => {
+
+    useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
+
   return (
     <div>
       <div className="min-h-screen bg-trdClr/15 py-12 w-full pt-26 flex flex-col items-center">

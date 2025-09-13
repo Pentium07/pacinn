@@ -50,6 +50,11 @@ const Events = () => {
     },
   ];
 
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
   const handleBuy = (event) => {
     setSelectedEvent(event);
     setQuantity(1);

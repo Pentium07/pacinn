@@ -5,7 +5,7 @@ import Bookings from './pages/Bookings';
 import Ticket from './pages/Ticket';
 import Contact from './pages/Contact';
 import Mode from './component/Mode';
-import Admin from './admin/admin';
+import Admin from './admin/Admin';
 import Dashboard from './admin/Dashboard';
 import Room from './admin/Room';
 import Event from './admin/Event';

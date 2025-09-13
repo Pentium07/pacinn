@@ -49,14 +49,16 @@ const App = () => {
           }
         />
 
-     <Route path="/admin" element={<Admin />}>
-  <Route index element={<Dashboard />} />
-</Route>
+        <Route path="/admin" element={<Admin />}>
+          {/* when just "/admin" → Dashboard */}
+          <Route index element={<Dashboard />} />
 
-<Route path="/admin/dashboard" element={<Admin><Dashboard /></Admin>} />
-<Route path="/admin/booking" element={<Admin><Room /></Admin>} />
-<Route path="/admin/event" element={<Admin><Event /></Admin>} />
-<Route path="/admin/scanner" element={<Admin><Scanner /></Admin>} />
+          {/* nested admin pages */}
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="booking" element={<Room />} />
+          <Route path="event" element={<Event />} />
+          <Route path="scanner" element={<Scanner />} />
+        </Route>
 
 
         {/* </Routes> */}

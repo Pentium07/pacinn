@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { 
   FaClipboardList, 
   FaCalendarAlt, 
@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa';
 import assets from '../assets/assests';
 
-const Admin = () => {
+const Admin = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -123,9 +123,7 @@ const Admin = () => {
       {/* Main content */}
       <div className="pt-16 lg:pl-72 lg:pt-0">
         <main className="min-h-screen bg-gray-50">
-          <div className="w-full">
-            <Outlet />
-          </div>
+          <div className="w-full">{children}</div>
         </main>
       </div>
 

@@ -10,6 +10,9 @@ import Dashboard from './admin/Dashboard';
 import Room from './admin/Room';
 import Event from './admin/Event';
 import Scanner from './admin/Scanner';
+import Register from './pages/Register';
+import Login from './admin/Login';
+import User from './admin/User';
 
 const App = () => {
   return (
@@ -48,6 +51,18 @@ const App = () => {
             </Mode>
           }
         />
+         <Route
+          path="/register"
+          element={
+              <Register />
+          }
+        />
+         <Route
+          path="/login"
+          element={
+              <Login />
+          }
+        />
 
         <Route path="/admin" element={<Admin />}>
           <Route index element={<Dashboard />} />
@@ -57,6 +72,7 @@ const App = () => {
         <Route path="/admin/booking" element={<Admin><Room /></Admin>} />
         <Route path="/admin/event" element={<Admin><Event /></Admin>} />
         <Route path="/admin/scanner" element={<Admin><Scanner /></Admin>} />
+        <Route path="/admin/user" element={<Admin><User /></Admin>} />
 
 
         {/* </Routes> */}

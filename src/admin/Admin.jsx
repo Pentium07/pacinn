@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'sonner';
 import { 
   FaClipboardList, 
   FaCalendarAlt, 
@@ -11,12 +13,39 @@ import {
 } from 'react-icons/fa';
 import assets from '../assets/assests';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const Admin = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.post(
+      `${API_URL}/auth/logout`,
+      {},
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,   // 👈 send token
+        },
+        withCredentials: true,
+      }
+    );
+
+    toast.success('Logged out successfully');
+    localStorage.removeItem('token'); // Clear stored token
+    navigate('/login');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Logout failed');
+  }
+};
+
 
   const linkClass =
     'group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-tetClr hover:shadow-sm hover:scale-[1.02]';
@@ -108,11 +137,24 @@ const Admin = ({ children }) => {
               <FaQrcode className="text-base" />
               <span className="font-medium">Scanner</span>
             </NavLink>
+            <NavLink
+              to="/admin/user"
+              className={({ isActive }) =>
+                `${linkClass} ${isActive ? activeClass : 'text-white'}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaQrcode className="text-base" />
+              <span className="font-medium">User</span>
+            </NavLink>
           </nav>
 
           {/* Logout */}
           <div className="p-4 border-t border-gray-200">
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-white hover:bg-red-100 hover:text-red-600 transition-all duration-200">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-white hover:bg-red-100 hover:text-red-600 transition-all duration-200"
+            >
               <FaSignOutAlt className="text-base" />
               <span className="font-medium">Logout</span>
             </button>

@@ -1,33 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
 import { FaCalendarAlt, FaEdit, FaTrash, FaPlus, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave, FaTimes } from 'react-icons/fa';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const Event = () => {
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      name: 'Gala Night Extravaganza',
-      subtitle: 'An evening of music, dance, and fine dining',
-      price: 7000,
-      tag: 'VIP',
-      image: '/images/gala-night.jpg',
-    },
-    {
-      id: 2,
-      name: 'Tech Summit 2025',
-      subtitle: 'Explore the future of technology with industry leaders',
-      price: 4000,
-      tag: 'Regular',
-      image: '/images/tech-summit.jpg',
-    },
-    {
-      id: 3,
-      name: 'Art & Wine Festival',
-      subtitle: 'Celebrate creativity with exclusive wine tastings',
-      price: 7000,
-      tag: 'VIP',
-      image: '/images/art-wine.jpg',
-    },
-  ]);
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef(null);
+  const [fileName, setFileName] = useState('No file chosen');
 
   const [transactionHistory, setTransactionHistory] = useState([
     {
@@ -77,9 +63,66 @@ const Event = () => {
     },
   ]);
 
-  const [showModal, setShowModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
-  const [formData, setFormData] = useState({ name: '', subtitle: '', price: '', tag: 'Regular', image: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    tickets: [{ type: 'Regular', price: '', quantity: '' }],
+    image: null,
+  });
+
+  // Fetch events from API
+const fetchEvents = async () => {
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/events`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      let events = [];
+
+      // Case 1: API returns an array of events
+      if (Array.isArray(response.data.events)) {
+        events = response.data.events;
+
+      // Case 2: API returns a single event object
+      } else if (response.data.event) {
+        events = [response.data.event];
+
+      // Case 3: Fallback (in case backend uses "data")
+      } else if (Array.isArray(response.data.data)) {
+        events = response.data.data;
+      }
+
+      setEvents(events);
+    } else {
+      setEvents([]);
+      toast.error('Unexpected response structure');
+    }
+  } catch (err) {
+    console.error('Error fetching events:', err.response || err);
+    setError(err.response?.data?.message || err.message || 'Error fetching events');
+    setEvents([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchEvents();
+    }
+  }, []);
 
   useEffect(() => {
     if (showModal) {
@@ -100,42 +143,141 @@ const Event = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleTicketChange = (index, field, value) => {
+    const updatedTickets = [...formData.tickets];
+    updatedTickets[index] = { ...updatedTickets[index], [field]: value };
+    setFormData({ ...formData, tickets: updatedTickets });
+  };
+
+  const addTicket = () => {
+    setFormData({
+      ...formData,
+      tickets: [...formData.tickets, { type: 'Regular', price: '', quantity: '' }],
+    });
+  };
+
+  const removeTicket = (index) => {
+    setFormData({
+      ...formData,
+      tickets: formData.tickets.filter((_, i) => i !== index),
+    });
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData({ ...formData, image: event.target.result });
-      };
-      reader.readAsDataURL(file);
+      setFileName(file.name);
+      setFormData({ ...formData, image: file });
+    } else {
+      setFileName('No file chosen');
+      setFormData({ ...formData, image: null });
     }
   };
 
-  const handleAddEvent = () => {
-    if (!formData.name || !formData.subtitle || !formData.price || !formData.tag || !formData.image) {
-      alert('Please fill in all fields');
+  const handleAddEvent = async () => {
+    const { name, description, start_date, end_date, tickets, image } = formData;
+
+    if (!name || !description || !start_date || !end_date || tickets.some(t => !t.type || !t.price || !t.quantity)) {
+      toast.error('Please fill in all required fields');
       return;
     }
-    if (editingEvent) {
-      setEvents(events.map((event) => (event.id === editingEvent.id ? { ...formData, id: editingEvent.id, price: parseInt(formData.price) } : event)));
-    } else {
-      const newEvent = { id: Date.now(), ...formData, price: parseInt(formData.price) };
-      setEvents([...events, newEvent]);
+
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', name);
+    formDataToSend.append('description', description);
+    formDataToSend.append('start_date', `${start_date}T00:00:00.000000Z`);
+    formDataToSend.append('end_date', `${end_date}T23:59:59.000000Z`);
+    formDataToSend.append('tickets', JSON.stringify(tickets));
+
+    // Only send if it's a new file, not an existing string URL
+    if (image instanceof File) {
+      formDataToSend.append('image', image);
     }
-    setShowModal(false);
-    setEditingEvent(null);
-    setFormData({ name: '', subtitle: '', price: '', tag: 'Regular', image: '' });
+
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem('token');
+      let response;
+      if (editingEvent) {
+        // Update event
+        response = await axios.put(`${API_URL}/events/${editingEvent.id}`, formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if ((response.status === 200 || response.status === 201) && response.data.event) {
+          setEvents(events.map(event => event.id === editingEvent.id ? response.data.event : event));
+          toast.success(response.data.message || 'Event updated successfully');
+        }
+      } else {
+        // Create event
+        response = await axios.post(`${API_URL}/events`, formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if ((response.status === 200 || response.status === 201) && response.data.event) {
+          setEvents([...events, response.data.event]);
+          toast.success(response.data.message);
+        }
+      }
+
+      setShowModal(false);
+      setEditingEvent(null);
+      setFormData({
+        name: '',
+        description: '',
+        start_date: '',
+        end_date: '',
+        tickets: [{ type: 'Regular', price: '', quantity: '' }],
+        image: null
+      });
+      setFileName('No file chosen');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save event');
+      console.error('Error saving event:', err.response || err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEditEvent = (event) => {
     setEditingEvent(event);
-    setFormData({ name: event.name, subtitle: event.subtitle, price: event.price, tag: event.tag, image: event.image });
+    setFormData({
+      name: event.name,
+      description: event.description,
+      start_date: event.start_date.split('T')[0],
+      end_date: event.end_date.split('T')[0],
+      tickets: event.tickets || [{ type: 'Regular', price: '', quantity: '' }],
+      image: event.image,
+    });
+    setFileName(event.image ? 'Image selected' : 'No file chosen');
     setShowModal(true);
   };
 
-  const handleDeleteEvent = (id) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      setEvents(events.filter((event) => event.id !== id));
+  const handleDeleteEvent = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this event?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(`${API_URL}/events/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.status === 200) {
+        setEvents(events.filter(event => event.id !== id));
+        toast.success(response.data.message || 'Event deleted successfully');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete event');
+      console.error('Error deleting event:', err.response || err);
     }
   };
 
@@ -155,7 +297,6 @@ const Event = () => {
 
         {/* Summary Cards */}
         <div className="mb-10 md:mb-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {/* Total Tickets Card */}
           <div className="bg-white rounded-xl shadow-lg p-6 flex items-center justify-between">
             <div>
               <h3 className="text-lg md:text-xl font-semibold text-gray-900">Total Tickets Sold</h3>
@@ -163,7 +304,6 @@ const Event = () => {
             </div>
             <FaCalendarAlt className="text-3xl md:text-4xl text-tetClr" />
           </div>
-          {/* Total Amount Card */}
           <div className="bg-white rounded-xl shadow-lg p-6 flex items-center justify-between">
             <div>
               <h3 className="text-lg md:text-xl font-semibold text-gray-900">Total Revenue</h3>
@@ -180,7 +320,11 @@ const Event = () => {
             <button
               onClick={() => {
                 setEditingEvent(null);
-                setFormData({ name: '', subtitle: '', price: '', tag: 'Regular', image: '' });
+                setFormData({ name: '', description: '', start_date: '', end_date: '', tickets: [{ type: 'Regular', price: '', quantity: '' }], image: null });
+                setFileName('No file chosen');
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
                 setShowModal(true);
               }}
               className="bg-tetClr text-white px-4 py-2 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg w-full md:w-auto"
@@ -190,49 +334,59 @@ const Event = () => {
           </div>
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm md:text-base text-left text-gray-700 min-w-[600px]">
-                <thead className="bg-tetClr/20 text-gray-800">
-                  <tr>
-                    <th className="px-8 py-6 md:py-4 font-semibold">Image</th>
-                    <th className="px-8 py-6 md:py-4 font-semibold">Name</th>
-                    <th className="px-8 py-6 md:py-4 font-semibold">Subtitle</th>
-                    <th className="px-8 py-6 md:py-4 font-semibold">Price (₦)</th>
-                    <th className="px-8 py-6 md:py-4 font-semibold">Tag</th>
-                    <th className="px-8 py-6 md:py-4 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {events.map((event) => (
-                    <tr key={event.id} className="border-b border-gray-200 hover:bg-tetClr/20 transition-colors duration-200">
-                      <td className="px-8 py-6 md:py-4">
-                        <img src={event.image} alt={event.name} className="w-10 h-10 md:w-12 md:h-12 rounded-md object-cover shadow-sm" />
-                      </td>
-                      <td className="px-8 py-6 md:py-4 font-medium text-gray-900">{event.name}</td>
-                      <td className="px-8 py-6 md:py-4 text-gray-600 max-w-[120px] md:max-w-[200px] truncate">{event.subtitle}</td>
-                      <td className="px-8 py-6 md:py-4 font-semibold text-tetClr">₦{event.price.toLocaleString()}</td>
-                      <td className="px-8 py-6 md:py-4">
-                        <span className={`text-sm font-medium ${event.tag === 'VIP' ? 'text-tetClr bg-tetClr/20' : 'text-gray-600 bg-gray-100'} px-2 py-1 rounded-full`}>
-                          {event.tag}
-                        </span>
-                      </td>
-                      <td className="px-8 py-6 md:py-4 flex gap-1 md:gap-2">
-                        <button
-                          onClick={() => handleEditEvent(event)}
-                          className="text-tetClr p-1 rounded-full  transition-all duration-200"
-                        >
-                          <FaEdit size={14} md:size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEvent(event.id)}
-                          className="text-tetClr p-1 rounded-full transition-all duration-200"
-                        >
-                          <FaTrash size={14} md:size={16} />
-                        </button>
-                      </td>
+              {isLoading ? (
+                <div className="p-6 text-center text-gray-600">Loading events...</div>
+              ) : error ? (
+                <div className="p-6 text-center text-gray-600">{error}</div>
+              ) : events.length === 0 ? (
+                <div className="p-6 text-center text-gray-600">No events found</div>
+              ) : (
+                <table className="w-full text-sm md:text-base text-left text-gray-700 min-w-[600px]">
+                  <thead className="bg-tetClr/20 text-gray-800">
+                    <tr>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Image</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Name</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Description</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Start Date</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">End Date</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {events.map((event) => (
+                      <tr key={event.id} className="border-b border-gray-200 hover:bg-tetClr/20 transition-colors duration-200">
+                        <td className="px-8 py-6 md:py-4">
+                          {event.image ? (
+                            <img src={event.image} alt={event.name} className="w-10 h-10 md:w-12 md:h-12 rounded-md object-cover shadow-sm" />
+                          ) : (
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-md bg-gray-200 flex items-center justify-center text-gray-500">No Image</div>
+                          )}
+                        </td>
+                        <td className="px-8 py-6 md:py-4 font-medium text-gray-900">{event.name}</td>
+                        <td className="px-8 py-6 md:py-4 text-gray-600 max-w-[120px] md:max-w-[200px] truncate">{event.description}</td>
+                        <td className="px-8 py-6 md:py-4">{event.start_date.split('T')[0]}</td>
+                        <td className="px-8 py-6 md:py-4">{event.end_date.split('T')[0]}</td>
+                        <td className="px-8 py-6 md:py-4 flex gap-1 md:gap-2">
+                          <button
+                            onClick={() => handleEditEvent(event)}
+                            className="text-tetClr p-1 rounded-full transition-all duration-200"
+                            disabled={isSubmitting}
+                          >
+                            <FaEdit size={14} md:size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="text-tetClr p-1 rounded-full transition-all duration-200"
+                            disabled={isSubmitting}
+                          >
+                            <FaTrash size={14} md:size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
@@ -280,6 +434,10 @@ const Event = () => {
                   onClick={() => {
                     setShowModal(false);
                     setEditingEvent(null);
+                    setFileName('No file chosen');
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
                   }}
                   className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
                 >
@@ -299,58 +457,103 @@ const Event = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">Subtitle</label>
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">Description</label>
                   <textarea
-                    name="subtitle"
-                    placeholder="Enter event subtitle"
-                    value={formData.subtitle}
+                    name="description"
+                    placeholder="Enter event description"
+                    value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
                     className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr text-sm md:text-base"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">Price (₦)</label>
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">Start Date</label>
                   <input
-                    type="number"
-                    name="price"
-                    placeholder="Enter price"
-                    value={formData.price}
+                    type="date"
+                    name="start_date"
+                    value={formData.start_date}
                     onChange={handleInputChange}
                     className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr text-sm md:text-base"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">Tag</label>
-                  <select
-                    name="tag"
-                    value={formData.tag}
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    name="end_date"
+                    value={formData.end_date}
                     onChange={handleInputChange}
                     className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr text-sm md:text-base"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">Tickets</label>
+                  {formData.tickets.map((ticket, index) => (
+                    <div key={index} className="flex flex-col md:flex-row gap-2 mb-2">
+                      <select
+                        value={ticket.type}
+                        onChange={(e) => handleTicketChange(index, 'type', e.target.value)}
+                        className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr text-sm md:text-base"
+                      >
+                        <option value="Regular">Regular</option>
+                        <option value="VIP">VIP</option>
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        value={ticket.price}
+                        onChange={(e) => handleTicketChange(index, 'price', e.target.value)}
+                        className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr text-sm md:text-base"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Quantity"
+                        value={ticket.quantity}
+                        onChange={(e) => handleTicketChange(index, 'quantity', e.target.value)}
+                        className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr text-sm md:text-base"
+                      />
+                      {formData.tickets.length > 1 && (
+                        <button
+                          onClick={() => removeTicket(index)}
+                          className="text-red-500 hover:text-red-600 p-2 rounded-full"
+                        >
+                          <FaTrash size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    onClick={addTicket}
+                    className="mt-2 text-tetClr hover:text-tetClr/80 flex items-center gap-2 text-sm md:text-base"
                   >
-                    <option value="Regular">Regular</option>
-                    <option value="VIP">VIP</option>
-                  </select>
+                    <FaPlus size={14} /> Add Another Ticket
+                  </button>
                 </div>
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-1">Event Image</label>
                   <input
                     type="file"
                     accept="image/*"
+                    ref={fileInputRef}
                     onChange={handleFileChange}
                     className="w-full p-2 md:p-3 border border-gray-300 rounded-lg text-sm md:text-base"
                   />
-                  {formData.image && (
+                  <span className="text-sm text-gray-400 mt-1">{fileName}</span>
+                  {formData.image && formData.image instanceof File && (
+                    <img src={URL.createObjectURL(formData.image)} alt="Preview" className="mt-2 w-16 h-16 md:w-20 md:h-20 rounded-md object-cover shadow-sm" />
+                  )}
+                  {formData.image && typeof formData.image === 'string' && (
                     <img src={formData.image} alt="Preview" className="mt-2 w-16 h-16 md:w-20 md:h-20 rounded-md object-cover shadow-sm" />
                   )}
                 </div>
               </div>
               <button
                 onClick={handleAddEvent}
-                disabled={!formData.name || !formData.subtitle || !formData.price || !formData.tag || !formData.image}
+                disabled={isSubmitting || !formData.name || !formData.description || !formData.start_date || !formData.end_date || formData.tickets.some(t => !t.type || !t.price || !t.quantity)}
                 className="w-full mt-4 md:mt-6 bg-tetClr text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
-                {editingEvent ? 'Update Event' : 'Add Event'}
+                {isSubmitting ? (editingEvent ? 'Updating Event...' : 'Adding Event...') : (editingEvent ? 'Update Event' : 'Add Event')}
               </button>
             </div>
           </div>

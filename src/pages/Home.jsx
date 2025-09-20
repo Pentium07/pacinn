@@ -102,38 +102,38 @@ const Home = () => {
   ];
 
 
-const testimonials = [
-  {
-    id: 1,
-    name: "Chinelo Okafor",
-    review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
-  },
-  {
-    id: 2,
-    name: "Emeka Nwosu",
-    review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
-  },
-  {
-    id: 3,
-    name: "Amina Bello",
-    review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
-  },
-  {
-    id: 4,
-    name: "Tunde Adeyemi",
-    review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
-  },
-  {
-    id: 5,
-    name: "Funke Balogun",
-    review: "A perfect blend of elegance and comfort. The staff went above and beyond to make our stay special.",
-  },
-  {
-    id: 6,
-    name: "Ifeanyi Okeke",
-    review: "Incredible experience! The atmosphere was vibrant, and the service was impeccable. Can't wait to return!",
-  },
-];
+  const testimonials = [
+    {
+      id: 1,
+      name: "Chinelo Okafor",
+      review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
+    },
+    {
+      id: 2,
+      name: "Emeka Nwosu",
+      review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
+    },
+    {
+      id: 3,
+      name: "Amina Bello",
+      review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
+    },
+    {
+      id: 4,
+      name: "Tunde Adeyemi",
+      review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
+    },
+    {
+      id: 5,
+      name: "Funke Balogun",
+      review: "A perfect blend of elegance and comfort. The staff went above and beyond to make our stay special.",
+    },
+    {
+      id: 6,
+      name: "Ifeanyi Okeke",
+      review: "Incredible experience! The atmosphere was vibrant, and the service was impeccable. Can't wait to return!",
+    },
+  ];
 
 
 
@@ -144,7 +144,7 @@ const testimonials = [
 
   return (
     <div className="w-full flex flex-col">
-      <div className="relative w-full h-[100vh] overflow-hidden">
+      <div className="relative w-full h-[100vh] items-center justify-center overflow-hidden">
         {/* Background Image */}
         <img
           src={assets.bg}
@@ -155,14 +155,17 @@ const testimonials = [
         {/* Gradient Overlay - Solid on small screens, original gradient on larger screens */}
         <div className="absolute inset-0 bg-pryClr/70 lg:bg-pryClr/0 md:bg-gradient-to-r md:from-pryClr md:via-pryClr/70 md:to-pryClr/20"></div>
 
-        {/* Text Container - Centered on small screens, original layout on larger screens */}
-        <div className="relative z-10 flex items-center h-full px-4 text-center md:text-left md:px-8 lg:px-12">
-          <div className="w-full flex flex-col gap-8 md:w-[50%]">
+        {/* Wrapper with 90% width */}
+        <div className="relative z-10 w-[90%] mx-auto h-full flex items-center text-center md:text-left">
+          <div className="w-full flex flex-col gap-8 md:gap-10 md:w-[55%]">
             <h1 className="text-3xl font-bold text-white md:text-6xl">
-              Welcome to <span className='text-secClr'>Pac Inn</span>
+              Welcome to <span className="text-secClr">Pac Inn</span>
             </h1>
             <p className="text-base text-gray-200 md:text-lg leading-relaxed">
-              Welcome to Pac Inn Hotel, where comfort meets vibrant energy. From our cozy rooms and friendly staff to the lively bar and exciting game center, we create a space where every guest feels at home and every moment is memorable
+              Welcome to Pac Inn Hotel, where comfort meets vibrant energy. From our
+              cozy rooms and friendly staff to the lively bar and exciting game
+              center, we create a space where every guest feels at home and every
+              moment is memorable
             </p>
             <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
               <NavLink
@@ -181,6 +184,7 @@ const testimonials = [
           </div>
         </div>
       </div>
+
 
       <div className="w-full flex flex-col gap-16 items-center justify-center text-gray-900 py-12 md:py-12 bg-gradient-to-b from-gray-50 to-blue-100">
         <div className="w-[90%]  flex flex-col gap-12 items-center text-center">

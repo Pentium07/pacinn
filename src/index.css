@@ -8,6 +8,15 @@
   --color-tetClr: #CCA000;
 }
 
+/* .scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -17,22 +26,32 @@
   scrollbar-width: none;
 }
 
-    .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          .animate-scrollRightToLeft {
-            display: flex;
-            animation: scrollRightToLeft 20s linear infinite;
-          }
-          @keyframes scrollRightToLeft {
-            0% {
-              transform: translateX(0);
-            }
-            100% {
-              transform: translateX(-50%);
-            }
-          }
+.animate-scrollRightToLeft {
+  display: flex;
+  animation: scrollRightToLeft 20s linear infinite;
+}
+
+@keyframes scrollRightToLeft {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.payment-status-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 20px 0;
+  box-sizing: border-box;
+} */
+
+/* html, body {
+  overflow-x: hidden;
+} */

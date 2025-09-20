@@ -13,6 +13,9 @@ import Scanner from './admin/Scanner';
 import Register from './pages/Register';
 import Login from './admin/Login';
 import User from './admin/User';
+import PaymentStatus from './pages/PaymentStatus';
+import EventStats from './admin/EventStats';
+import Subscriber from './admin/Subscriber';
 
 const App = () => {
   return (
@@ -51,6 +54,14 @@ const App = () => {
             </Mode>
           }
         />
+        <Route
+          path="/payment-status"
+          element={
+            <Mode>
+              <PaymentStatus />
+            </Mode>
+          }
+        />
          <Route
           path="/register"
           element={
@@ -73,6 +84,8 @@ const App = () => {
         <Route path="/admin/event" element={<Admin><Event /></Admin>} />
         <Route path="/admin/scanner" element={<Admin><Scanner /></Admin>} />
         <Route path="/admin/user" element={<Admin><User /></Admin>} />
+        <Route path="/event-stats/:eventId" element={<Admin><EventStats /></Admin>} />
+        <Route path="/admin/subscriber" element={<Admin><Subscriber /></Admin>} />
 
 
         {/* </Routes> */}

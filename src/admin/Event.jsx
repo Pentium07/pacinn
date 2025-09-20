@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FaCalendarAlt, FaEdit, FaTrash, FaPlus, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave, FaTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaEdit, FaTrash, FaPlus, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave, FaTimes, FaEye, FaChartBar } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
+const STORAGE_BASE_URL = import.meta.env.VITE_STORAGE_BASE_URL;
 
 const Event = () => {
   const [events, setEvents] = useState([]);
@@ -14,6 +16,11 @@ const Event = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
   const [fileName, setFileName] = useState('No file chosen');
+  const [viewModal, setViewModal] = useState(false);
+  const [viewEvent, setViewEvent] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState(null);
+  const navigate = useNavigate();
 
   const [transactionHistory, setTransactionHistory] = useState([
     {
@@ -73,49 +80,82 @@ const Event = () => {
   });
 
   // Fetch events from API
-const fetchEvents = async () => {
-  setIsLoading(true);
-  setError(null);
+  const fetchEvents = async () => {
+    const toastId = toast.loading('Loading events...');
+    setIsLoading(true);
+    setError(null);
 
-  try {
-    const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/events`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/events`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-    if (response.status === 200) {
-      let events = [];
+      if (response.status === 200) {
+        let events = [];
 
-      // Case 1: API returns an array of events
-      if (Array.isArray(response.data.events)) {
-        events = response.data.events;
+        // Handle nested data structure from backend
+        if (Array.isArray(response.data.data.data)) {
+          events = response.data.data.data;
+        } else if (Array.isArray(response.data.events)) {
+          events = response.data.events;
+        } else if (response.data.event) {
+          events = [response.data.event];
+        } else if (Array.isArray(response.data.data)) {
+          events = response.data.data;
+        }
 
-      // Case 2: API returns a single event object
-      } else if (response.data.event) {
-        events = [response.data.event];
-
-      // Case 3: Fallback (in case backend uses "data")
-      } else if (Array.isArray(response.data.data)) {
-        events = response.data.data;
+        setEvents(events);
+        toast.success('Events loaded successfully', { id: toastId });
+      } else {
+        setEvents([]);
+        toast.error('Unexpected response structure', { id: toastId });
       }
-
-      setEvents(events);
-    } else {
+    } catch (err) {
+      console.error('Error fetching events:', err.response || err);
+      setError(err.response?.data?.message || err.message || 'Error fetching events');
       setEvents([]);
-      toast.error('Unexpected response structure');
+      toast.error(err.response?.data?.message || 'Error fetching events', { id: toastId });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    console.error('Error fetching events:', err.response || err);
-    setError(err.response?.data?.message || err.message || 'Error fetching events');
-    setEvents([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
+  // Fetch single event for View modal
+  const fetchEventDetails = async (id) => {
+    const toastId = toast.loading('Loading event details...');
+    setViewLoading(true);
+    setViewError(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/events/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        let event = response.data.event || response.data.data || response.data;
+        setViewEvent(event);
+        toast.success('Event details loaded successfully', { id: toastId });
+      } else {
+        setViewEvent(null);
+        toast.error('Unexpected response structure', { id: toastId });
+      }
+    } catch (err) {
+      console.error('Error fetching event details:', err.response || err);
+      setViewError(err.response?.data?.message || err.message || 'Error fetching event details');
+      setViewEvent(null);
+      toast.error(err.response?.data?.message || 'Error fetching event details', { id: toastId });
+    } finally {
+      setViewLoading(false);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -125,7 +165,7 @@ const fetchEvents = async () => {
   }, []);
 
   useEffect(() => {
-    if (showModal) {
+    if (showModal || viewModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -133,7 +173,7 @@ const fetchEvents = async () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [showModal]);
+  }, [showModal, viewModal]);
 
   const totalTickets = transactionHistory.reduce((sum, transaction) => sum + transaction.tickets, 0);
   const totalAmount = transactionHistory.reduce((sum, transaction) => sum + transaction.totalPrice, 0);
@@ -177,54 +217,89 @@ const fetchEvents = async () => {
   const handleAddEvent = async () => {
     const { name, description, start_date, end_date, tickets, image } = formData;
 
+    // Validation
     if (!name || !description || !start_date || !end_date || tickets.some(t => !t.type || !t.price || !t.quantity)) {
       toast.error('Please fill in all required fields');
       return;
-    }
-
-    const formDataToSend = new FormData();
-    formDataToSend.append('name', name);
-    formDataToSend.append('description', description);
-    formDataToSend.append('start_date', `${start_date}T00:00:00.000000Z`);
-    formDataToSend.append('end_date', `${end_date}T23:59:59.000000Z`);
-    formDataToSend.append('tickets', JSON.stringify(tickets));
-
-    // Only send if it's a new file, not an existing string URL
-    if (image instanceof File) {
-      formDataToSend.append('image', image);
     }
 
     try {
       setIsSubmitting(true);
       const token = localStorage.getItem('token');
       let response;
-      if (editingEvent) {
-        // Update event
-        response = await axios.put(`${API_URL}/events/${editingEvent.id}`, formDataToSend, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        if ((response.status === 200 || response.status === 201) && response.data.event) {
-          setEvents(events.map(event => event.id === editingEvent.id ? response.data.event : event));
-          toast.success(response.data.message || 'Event updated successfully');
-        }
-      } else {
-        // Create event
-        response = await axios.post(`${API_URL}/events`, formDataToSend, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
 
-        if ((response.status === 200 || response.status === 201) && response.data.event) {
-          setEvents([...events, response.data.event]);
-          toast.success(response.data.message);
+      // CASE 1: If no image, send JSON
+      if (!image) {
+        const payload = {
+          name,
+          description,
+          start_date: `${start_date}T09:00:00.000000Z`,
+          end_date: `${end_date}T18:00:00.000000Z`,
+          tickets,
+          image: null,
+        };
+
+        if (editingEvent) {
+          response = await axios.put(`${API_URL}/events/${editingEvent.id}`, payload, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+        } else {
+          response = await axios.post(`${API_URL}/events`, payload, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+        }
+      }
+      // CASE 2: If image exists, use FormData
+      else {
+        const formDataToSend = new FormData();
+        formDataToSend.append('name', name);
+        formDataToSend.append('description', description);
+        formDataToSend.append('start_date', `${start_date} 09:00:00`);
+        formDataToSend.append('end_date', `${end_date} 18:00:00`);
+        formDataToSend.append('image', image);
+        formDataToSend.append('tickets', JSON.stringify(tickets));
+
+        if (editingEvent) {
+          response = await axios.post(`${API_URL}/events/${editingEvent.id}?_method=PUT`, formDataToSend, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } else {
+          response = await axios.post(`${API_URL}/events`, formDataToSend, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          });
         }
       }
 
+      // Handle successful response
+      if ((response.status === 200 || response.status === 201) && response.data.event) {
+        // Update state with the new or updated event
+        if (editingEvent) {
+          setEvents(events.map(event => event.id === editingEvent.id ? response.data.event : event));
+          toast.success(response.data.message || 'Event updated successfully');
+        } else {
+          setEvents([...events, response.data.event]);
+          toast.success(response.data.message || 'Event created successfully');
+        }
+
+        // Refetch events to ensure the latest data from the backend
+        await fetchEvents();
+      } else {
+        toast.error('Unexpected response structure');
+      }
+
+      // Reset form
       setShowModal(false);
       setEditingEvent(null);
       setFormData({
@@ -233,15 +308,15 @@ const fetchEvents = async () => {
         start_date: '',
         end_date: '',
         tickets: [{ type: 'Regular', price: '', quantity: '' }],
-        image: null
+        image: null,
       });
       setFileName('No file chosen');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (err) {
+      console.error('Error saving event:', err.response?.data || err);
       toast.error(err.response?.data?.message || 'Failed to save event');
-      console.error('Error saving event:', err.response || err);
     } finally {
       setIsSubmitting(false);
     }
@@ -279,6 +354,68 @@ const fetchEvents = async () => {
       toast.error(err.response?.data?.message || 'Failed to delete event');
       console.error('Error deleting event:', err.response || err);
     }
+  };
+
+  const handleTogglePayment = async (id, canPay) => {
+    const action = canPay === '1' ? 'Disabling' : 'Enabling';
+    const endpoint = canPay === '1' ? 'cantpay' : 'canpay';
+    const newCanPay = canPay === '1' ? '0' : '1';
+    const toastId = toast.loading(`${action} payment...`);
+
+    // Optimistically update UI
+    setEvents(prevEvents =>
+      prevEvents.map(event =>
+        event.id === id ? { ...event, canPay: newCanPay.toString() } : event
+      )
+    );
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`${API_URL}/events/${id}/${endpoint}`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200 && response.data.event) {
+        // Replace with the latest backend event object
+        setEvents(prevEvents =>
+          prevEvents.map(event =>
+            event.id === id ? response.data.event : event
+          )
+        );
+        toast.success(response.data.message || `Payment ${action.toLowerCase()} successfully`, { id: toastId });
+      } else {
+        throw new Error('Unexpected response from server');
+      }
+    } catch (err) {
+      console.error(`Error ${action.toLowerCase()} payment:`, err.response || err);
+
+      // Rollback UI if the request fails
+      setEvents(prevEvents =>
+        prevEvents.map(event =>
+          event.id === id ? { ...event, canPay: canPay } : event
+        )
+      );
+
+      toast.error(err.response?.data?.message || `Failed to ${action.toLowerCase()} payment`, { id: toastId });
+    }
+  };
+
+  const handleViewEvent = async (id) => {
+    await fetchEventDetails(id);
+    setViewModal(true);
+  };
+
+  const handleViewStats = (id) => {
+    navigate(`/event-stats/${id}`);
+  };
+
+  // Format tickets array for display in table
+  const formatTickets = (tickets) => {
+    if (!tickets || !Array.isArray(tickets)) return 'No tickets';
+    return tickets.map(ticket => `${ticket.type}: ₦${ticket.price}, ${ticket.quantity} available`).join('; ');
   };
 
   return (
@@ -327,7 +464,7 @@ const fetchEvents = async () => {
                 }
                 setShowModal(true);
               }}
-              className="bg-tetClr text-white px-4 py-2 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg w-full md:w-auto"
+              className="bg-tetClr text-white px-4 py-2 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg w-full md:w-auto cursor-pointer"
             >
               <FaPlus /> Add Event
             </button>
@@ -346,40 +483,70 @@ const fetchEvents = async () => {
                     <tr>
                       <th className="px-8 py-6 md:py-4 font-semibold">Image</th>
                       <th className="px-8 py-6 md:py-4 font-semibold">Name</th>
-                      <th className="px-8 py-6 md:py-4 font-semibold">Description</th>
-                      <th className="px-8 py-6 md:py-4 font-semibold">Start Date</th>
-                      <th className="px-8 py-6 md:py-4 font-semibold">End Date</th>
-                      <th className="px-8 py-6 md:py-4 font-semibold">Actions</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Pay</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Ticket</th>
+                      <th className="px-8 py-6 md:py-4 font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {events.map((event) => (
                       <tr key={event.id} className="border-b border-gray-200 hover:bg-tetClr/20 transition-colors duration-200">
                         <td className="px-8 py-6 md:py-4">
-                          {event.image ? (
-                            <img src={event.image} alt={event.name} className="w-10 h-10 md:w-12 md:h-12 rounded-md object-cover shadow-sm" />
+                          {event.image && typeof event.image === 'string' ? (
+                            <img src={`${STORAGE_BASE_URL}/${event.image}`} alt={event.name} className="w-10 h-10 md:w-12 md:h-12 rounded-md object-cover shadow-sm" />
                           ) : (
                             <div className="w-10 h-10 md:w-12 md:h-12 rounded-md bg-gray-200 flex items-center justify-center text-gray-500">No Image</div>
                           )}
                         </td>
                         <td className="px-8 py-6 md:py-4 font-medium text-gray-900">{event.name}</td>
-                        <td className="px-8 py-6 md:py-4 text-gray-600 max-w-[120px] md:max-w-[200px] truncate">{event.description}</td>
-                        <td className="px-8 py-6 md:py-4">{event.start_date.split('T')[0]}</td>
-                        <td className="px-8 py-6 md:py-4">{event.end_date.split('T')[0]}</td>
+                        <td className="px-8 py-6 md:py-4">{event.canPay === '1' ? 'Yes' : 'No'}</td>
+                        <td className="px-8 py-6 md:py-4 text-gray-600 max-w-[300px]">{formatTickets(event.tickets)}</td>
                         <td className="px-8 py-6 md:py-4 flex gap-1 md:gap-2">
                           <button
                             onClick={() => handleEditEvent(event)}
-                            className="text-tetClr p-1 rounded-full transition-all duration-200"
+                            className="text-tetClr p-1 rounded-full cursor-pointer transition-all duration-200"
                             disabled={isSubmitting}
+                            title="Edit"
                           >
                             <FaEdit size={14} md:size={16} />
                           </button>
                           <button
                             onClick={() => handleDeleteEvent(event.id)}
-                            className="text-tetClr p-1 rounded-full transition-all duration-200"
+                            className="text-tetClr p-1 rounded-full cursor-pointer transition-all duration-200"
                             disabled={isSubmitting}
+                            title="Delete"
                           >
                             <FaTrash size={14} md:size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleTogglePayment(event.id, event.canPay)}
+                            className={`p-1 rounded-full cursor-pointer transition-all duration-200
+    ${event.canPay === '1' ? 'text-red-500' : 'text-green-500'}
+  `}
+                            disabled={isSubmitting}
+                            title={event.canPay === '1' ? 'Disable Payment' : 'Enable Payment'}
+                          >
+                            {isSubmitting ? (
+                              <span className="animate-spin w-4 h-4 border-2 border-t-transparent border-current rounded-full inline-block"></span>
+                            ) : (
+                              <FaMoneyBillWave size={14} />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleViewEvent(event.id)}
+                            className="text-blue-500 p-1 rounded-full cursor-pointer transition-all duration-200"
+                            disabled={isSubmitting}
+                            title="View Details"
+                          >
+                            <FaEye size={14} md:size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleViewStats(event.id)}
+                            className="text-purple-500 p-1 rounded-full cursor-pointer transition-all duration-200"
+                            disabled={isSubmitting}
+                            title="View Stats"
+                          >
+                            <FaChartBar size={14} md:size={16} />
                           </button>
                         </td>
                       </tr>
@@ -427,7 +594,7 @@ const fetchEvents = async () => {
         {/* Add/Edit Event Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[90vw] md:max-w-lg p-4 md:p-6">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[90vw] md:max-w-lg p-4 md:p-6 overflow-y-auto max-h-[80vh]">
               <div className="flex justify-between items-center mb-4 md:mb-6">
                 <h3 className="text-base md:text-lg font-bold text-gray-900">{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
                 <button
@@ -439,7 +606,7 @@ const fetchEvents = async () => {
                       fileInputRef.current.value = '';
                     }
                   }}
-                  className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
+                  className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-200"
                 >
                   <FaTimes size={16} md:size={18} />
                 </button>
@@ -516,7 +683,7 @@ const fetchEvents = async () => {
                       {formData.tickets.length > 1 && (
                         <button
                           onClick={() => removeTicket(index)}
-                          className="text-red-500 hover:text-red-600 p-2 rounded-full"
+                          className="text-red-500 hover:text-red-600 p-2 rounded-full cursor-pointer"
                         >
                           <FaTrash size={14} />
                         </button>
@@ -525,7 +692,7 @@ const fetchEvents = async () => {
                   ))}
                   <button
                     onClick={addTicket}
-                    className="mt-2 text-tetClr hover:text-tetClr/80 flex items-center gap-2 text-sm md:text-base"
+                    className="mt-2 text-tetClr hover:text-tetClr/80 flex items-center gap-2 text-sm md:text-base cursor-pointer"
                   >
                     <FaPlus size={14} /> Add Another Ticket
                   </button>
@@ -544,17 +711,92 @@ const fetchEvents = async () => {
                     <img src={URL.createObjectURL(formData.image)} alt="Preview" className="mt-2 w-16 h-16 md:w-20 md:h-20 rounded-md object-cover shadow-sm" />
                   )}
                   {formData.image && typeof formData.image === 'string' && (
-                    <img src={formData.image} alt="Preview" className="mt-2 w-16 h-16 md:w-20 md:h-20 rounded-md object-cover shadow-sm" />
+                    <img src={`${STORAGE_BASE_URL}/${formData.image}`} alt="Preview" className="mt-2 w-16 h-16 md:w-20 md:h-20 rounded-md object-cover shadow-sm" />
                   )}
                 </div>
               </div>
               <button
                 onClick={handleAddEvent}
                 disabled={isSubmitting || !formData.name || !formData.description || !formData.start_date || !formData.end_date || formData.tickets.some(t => !t.type || !t.price || !t.quantity)}
-                className="w-full mt-4 md:mt-6 bg-tetClr text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                className="w-full mt-4 md:mt-6 bg-tetClr text-white py-2 md:py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg cursor-pointer"
               >
                 {isSubmitting ? (editingEvent ? 'Updating Event...' : 'Adding Event...') : (editingEvent ? 'Update Event' : 'Add Event')}
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* View Event Modal */}
+        {viewModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[90vw] md:max-w-lg p-4 md:p-6 overflow-y-auto max-h-[80vh]">
+              <div className="flex justify-between items-center mb-4 md:mb-6">
+                <h3 className="text-base md:text-lg font-bold text-gray-900">Event Details</h3>
+                <button
+                  onClick={() => {
+                    setViewModal(false);
+                    setViewEvent(null);
+                    setViewError(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full cursor-pointer hover:bg-gray-100 transition-all duration-200"
+                >
+                  <FaTimes size={16} md:size={18} />
+                </button>
+              </div>
+              {viewLoading ? (
+                <div className="p-6 text-center text-gray-600">Loading event details...</div>
+              ) : viewError ? (
+                <div className="p-6 text-center text-gray-600">{viewError}</div>
+              ) : viewEvent ? (
+                <div className="space-y-3 md:space-y-4">
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">ID</label>
+                    <p className="text-sm md:text-base text-gray-600">{viewEvent.id}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Name</label>
+                    <p className="text-sm md:text-base text-gray-600">{viewEvent.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Description</label>
+                    <p className="text-sm md:text-base text-gray-600">{viewEvent.description}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Start Date</label>
+                    <p className="text-sm md:text-base text-gray-600">{new Date(viewEvent.start_date).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">End Date</label>
+                    <p className="text-sm md:text-base text-gray-600">{new Date(viewEvent.end_date).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Tickets</label>
+                    <p className="text-sm md:text-base text-gray-600">{formatTickets(viewEvent.tickets)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Can Pay</label>
+                    <p className="text-sm md:text-base text-gray-600">{viewEvent.canPay === '1' ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Created At</label>
+                    <p className="text-sm md:text-base text-gray-600">{new Date(viewEvent.created_at).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Updated At</label>
+                    <p className="text-sm md:text-base text-gray-600">{new Date(viewEvent.updated_at).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base font-medium text-gray-700">Image</label>
+                    {viewEvent.image && typeof viewEvent.image === 'string' ? (
+                      <img src={`${STORAGE_BASE_URL}/${viewEvent.image}`} alt={viewEvent.name} className="w-16 h-16 md:w-20 md:h-20 rounded-md object-cover shadow-sm" />
+                    ) : (
+                      <p className="text-sm md:text-base text-gray-600">No Image</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 text-center text-gray-600">No event data available</div>
+              )}
             </div>
           </div>
         )}

@@ -147,6 +147,16 @@ const handleLogout = async () => {
               <FaQrcode className="text-base" />
               <span className="font-medium">User</span>
             </NavLink>
+            <NavLink
+              to="/admin/subscriber"
+              className={({ isActive }) =>
+                `${linkClass} ${isActive ? activeClass : 'text-white'}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaQrcode className="text-base" />
+              <span className="font-medium">Subscriber</span>
+            </NavLink>
           </nav>
 
           {/* Logout */}

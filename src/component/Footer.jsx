@@ -42,7 +42,7 @@ const Footer = () => {
       <div className="relative z-10 py-4 md:py-6 lg:py-8">
         <div className="w-full max-w-[95%] md:max-w-[90%] lg:max-w-[85%] mx-auto flex flex-col gap-6 md:gap-8 lg:gap-10">
           {/* Main Footer Content */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6 lg:gap-8">
             {/* Brand and Description */}
             <div className="flex flex-col gap-4 md:gap-5 lg:gap-6">
               <img src={assets.logo} className="w-16 md:w-18" alt="Pac Inn Hotel Logo" />
@@ -52,7 +52,7 @@ const Footer = () => {
             </div>
 
             {/* Quick Links */}
-            <div className="flex flex-col gap-4 md:gap-5 lg:gap-6">
+            <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 hidden md:block">
               <h3 className="text-base md:text-lg lg:text-xl font-bold text-white relative pb-1 md:pb-2 after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-12 after:bg-gradient-to-r after:from-[#F0CB46] after:to-[#CCA000]">
                 Explore
               </h3>
@@ -127,11 +127,11 @@ const Footer = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="p-1 md:p-2 lg:p-3 bg-[#001D3D] text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F0CB46] flex-1 min-w-0"
+                    className="p-3 md:p-2 lg:p-3 bg-[#001D3D] text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F0CB46] flex-1 placeholder:px-4 placeholder:md:px-0 min-w-0"
                   />
                   <button
                     onClick={handleNewsletterSubmit}
-                    className="p-1 md:p-2 lg:p-3 bg-[#F0CB46] text-[#000814] rounded-md hover:bg-[#CCA000] transition-all duration-300 w-full md:w-auto md:min-w-[100px] text-center"
+                    className="p-3 md:p-2 lg:p-3 bg-[#F0CB46] text-[#000814] rounded-md hover:bg-[#CCA000] transition-all duration-300 w-full md:w-auto md:min-w-[100px] text-center"
                   >
                     Subscribe
                   </button>

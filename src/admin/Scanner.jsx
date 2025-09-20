@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { FaQrcode, FaTimes } from 'react-icons/fa';
+import { FaQrcode, FaTimes, FaTrash } from 'react-icons/fa';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -64,6 +64,12 @@ const Scanner = () => {
     setIsScanning(false);
   };
 
+  // Function to clear transaction reference input
+  const clearTransactionRef = () => {
+    setTransactionRef('');
+    setError(null);
+  };
+
   // Function to validate QR code
   const validateQrCode = async (qrCode) => {
     const toastId = toast.loading('Validating QR code...');
@@ -79,6 +85,7 @@ const Scanner = () => {
         'Content-Type': 'application/json',
       };
       if (token) headers['Authorization'] = `Bearer ${token}`;
+      else throw new Error('No authentication token found. Please log in.');
 
       const response = await axios.get(`${API_URL}/purchases/crypt/${qrCode}`, {
         headers,
@@ -88,7 +95,21 @@ const Scanner = () => {
       console.log('QR validation response:', JSON.stringify(response.data, null, 2));
 
       if (response.status === 200) {
-        setResult(response.data.purchase); // Adjust based on Postman response structure
+        const purchaseData = response.data.data || response.data.purchase || response.data;
+        if (!purchaseData?.id) throw new Error('Invalid purchase data in response');
+        setResult({
+          id: purchaseData.id,
+          full_name: purchaseData.full_name || 'N/A',
+          email: purchaseData.email || 'N/A',
+          ticket_type: purchaseData.ticket_type || 'N/A',
+          quantity: parseInt(purchaseData.quantity) || 0,
+          checked_in_quantity: parseInt(purchaseData.checked_in_quantity) || 0,
+          remaining: parseInt(purchaseData.remaining) || parseInt(purchaseData.quantity) || 0,
+          checked_in_by: purchaseData.checked_in_by || 'N/A',
+          used: purchaseData.used || '0',
+          checked_in_at: purchaseData.checked_in_at || null,
+          event: purchaseData.event || { name: 'N/A' },
+        });
         toast.success('QR code validated successfully', { id: toastId });
       } else {
         throw new Error('Unexpected response status');
@@ -100,7 +121,7 @@ const Scanner = () => {
           ? 'You are not authenticated. Please log in again.'
           : err.code === 'ERR_NETWORK'
             ? 'Failed to validate QR code due to network issues. Please contact the administrator.'
-            : err.response?.data?.message || 'Failed to validate QR code';
+            : err.response?.data?.message || err.message || 'Failed to validate QR code';
       setError(errorMessage);
       toast.error(errorMessage, { id: toastId });
     } finally {
@@ -129,6 +150,7 @@ const Scanner = () => {
         'Content-Type': 'application/json',
       };
       if (token) headers['Authorization'] = `Bearer ${token}`;
+      else throw new Error('No authentication token found. Please log in.');
 
       const response = await axios.get(`${API_URL}/purchases/ref/${transactionRef}`, {
         headers,
@@ -138,7 +160,21 @@ const Scanner = () => {
       console.log('Transaction ref validation response:', JSON.stringify(response.data, null, 2));
 
       if (response.status === 200) {
-        setResult(response.data.purchase); // Adjust based on Postman response structure
+        const purchaseData = response.data.data || response.data.purchase || response.data;
+        if (!purchaseData?.id) throw new Error('Invalid purchase data in response');
+        setResult({
+          id: purchaseData.id,
+          full_name: purchaseData.full_name || 'N/A',
+          email: purchaseData.email || 'N/A',
+          ticket_type: purchaseData.ticket_type || 'N/A',
+          quantity: parseInt(purchaseData.quantity) || 0,
+          checked_in_quantity: parseInt(purchaseData.checked_in_quantity) || 0,
+          remaining: parseInt(purchaseData.remaining) || parseInt(purchaseData.quantity) || 0,
+          checked_in_by: purchaseData.checked_in_by || 'N/A',
+          used: purchaseData.used || '0',
+          checked_in_at: purchaseData.checked_in_at || null,
+          event: purchaseData.event || { name: 'N/A' },
+        });
         toast.success('Transaction reference validated successfully', { id: toastId });
       } else {
         throw new Error('Unexpected response status');
@@ -150,7 +186,7 @@ const Scanner = () => {
           ? 'You are not authenticated. Please log in again.'
           : err.code === 'ERR_NETWORK'
             ? 'Failed to validate transaction reference due to network issues. Please contact the administrator.'
-            : err.response?.data?.message || 'Failed to validate transaction reference';
+            : err.response?.data?.message || err.message || 'Failed to validate transaction reference';
       setError(errorMessage);
       toast.error(errorMessage, { id: toastId });
     } finally {
@@ -178,6 +214,7 @@ const Scanner = () => {
         'Content-Type': 'application/json',
       };
       if (token) headers['Authorization'] = `Bearer ${token}`;
+      else throw new Error('No authentication token found. Please log in.');
 
       const response = await axios.post(`${API_URL}/purchases/${result.id}/checkin`, {}, {
         headers,
@@ -187,10 +224,17 @@ const Scanner = () => {
       console.log('Check-in response:', JSON.stringify(response.data, null, 2));
 
       if (response.status === 200) {
+        const purchaseData = response.data.data || response.data.purchase || response.data;
+        setResult({
+          ...result,
+          checked_in_quantity: parseInt(response.data.checked_in_quantity) || parseInt(purchaseData.checked_in_quantity) || result.checked_in_quantity + 1,
+          remaining: parseInt(response.data.remaining) || parseInt(purchaseData.remaining) || result.quantity - (result.checked_in_quantity + 1),
+          checked_in_by: purchaseData.checked_in_by || result.checked_in_by || 'N/A',
+          used: purchaseData.used || (parseInt(response.data.remaining) === 0 ? '1' : '0'),
+          checked_in_at: purchaseData.checked_in_at || new Date().toISOString(),
+        });
+        setTransactionRef(''); // Clear the transaction reference input
         toast.success(response.data.message || 'Ticket checked in successfully', { id: toastId });
-        setResult(null);
-        setQrData('');
-        setTransactionRef('');
       } else {
         throw new Error('Unexpected response status');
       }
@@ -201,7 +245,7 @@ const Scanner = () => {
           ? 'You are not authenticated. Please log in again.'
           : err.code === 'ERR_NETWORK'
             ? 'Failed to check in due to network issues. Please contact the administrator.'
-            : err.response?.data?.message || 'Failed to check in';
+            : err.response?.data?.message || err.message || 'Failed to check in';
       setError(errorMessage);
       toast.error(errorMessage, { id: toastId });
     } finally {
@@ -225,32 +269,32 @@ const Scanner = () => {
   }, [isScanning, codeReader]);
 
   return (
-    <div className="min-h-screen bg-trdClr/15 py-12 w-full pt-28">
-      <div className="w-[90%] mx-auto">
+    <div className="min-h-screen bg-trdClr/15 py-12 w-full ">
+      <div className="w-[95%] sm:w-[90%] max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             QR Code & Transaction Scanner
           </h1>
-          <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
             Scan a QR code or enter a transaction reference to validate and check in.
           </p>
         </div>
 
         {/* Scanner Section */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="p-6 border-b border-secClr bg-tetClr/30">
-            <h2 className="text-xl font-semibold text-gray-900">Scan or Enter Details</h2>
+          <div className="p-4 sm:p-6 border-b border-secClr bg-tetClr/30">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Scan or Enter Details</h2>
           </div>
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-6">
             {/* QR Scanner Button */}
             <div className="flex justify-center">
               <button
                 onClick={() => setIsScanning(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
                 disabled={loading}
               >
-                <FaQrcode className="text-lg" />
+                <FaQrcode className="text-base sm:text-lg" />
                 <span>Scan QR Code</span>
               </button>
             </div>
@@ -260,55 +304,69 @@ const Scanner = () => {
               <label className="block text-sm font-medium text-gray-600">
                 Transaction Reference
               </label>
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
                 <input
                   type="text"
                   value={transactionRef}
                   onChange={(e) => setTransactionRef(e.target.value)}
-                  placeholder="Enter transaction reference (e.g., TXN68cd3c347a069)"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pryClr focus:border-pryClr"
+                  placeholder="Enter transaction reference (e.g., TXN68cea2f7da4da)"
+                  className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pryClr focus:border-pryClr text-sm sm:text-base"
                   disabled={loading}
                 />
-                <button
-                  onClick={validateTransactionRef}
-                  className="px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg"
-                  disabled={loading}
-                >
-                  Validate
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={validateTransactionRef}
+                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
+                    disabled={loading}
+                  >
+                    Validate
+                  </button>
+                  <button
+                    onClick={clearTransactionRef}
+                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base flex items-center justify-center"
+                    disabled={loading || !transactionRef}
+                  >
+                    <FaTrash className="text-base sm:text-lg mr-1 sm:mr-2" />
+                    Clear
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Result and Check-in */}
-            {loading && <div className="text-center text-gray-600">Loading...</div>}
-            {error && <div className="text-center text-red-500">{error}</div>}
+            {loading && <div className="text-center text-gray-600 text-sm sm:text-base">Loading...</div>}
+            {error && <div className="text-center text-red-500 text-sm sm:text-base">{error}</div>}
             {result && (
               <div className="space-y-4">
                 <div className="p-4 bg-tetClr/30 rounded-lg border border-secClr">
-                  <h3 className="text-lg font-semibold text-gray-900">Purchase Details</h3>
-                  <p className="text-sm text-gray-600">ID: {result.id}</p>
-                  {result.created_at && (
-                    <p className="text-sm text-gray-600">
-                      Created: {new Date(result.created_at).toLocaleString()}
-                    </p>
-                  )}
-                  {result.event?.name && (
-                    <p className="text-sm text-gray-600">Event: {result.event.name}</p>
-                  )}
-                  {result.email && (
-                    <p className="text-sm text-gray-600">Email: {result.email}</p>
-                  )}
-                  {result.ticket_type && (
-                    <p className="text-sm text-gray-600">Ticket Type: {result.ticket_type}</p>
-                  )}
-                  {result.quantity && (
-                    <p className="text-sm text-gray-600">Quantity: {result.quantity}</p>
-                  )}
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">Purchase Details</h3>
+                  <div className="space-y-2 text-sm sm:text-base">
+                    <p className="text-gray-600">Purchase ID: {result.id}</p>
+                    <p className="text-gray-600">Full Name: {result.full_name}</p>
+                    <p className="text-gray-600">Email: {result.email}</p>
+                    <p className="text-gray-600">Event: {result.event?.name || 'N/A'}</p>
+                    <p className="text-gray-600">Ticket Type: {result.ticket_type}</p>
+                    <p className="text-gray-600">Quantity: {result.quantity}</p>
+                    <p className="text-gray-600">Checked-in Quantity: {result.checked_in_quantity}</p>
+                    <p className="text-gray-600">Remaining: {result.remaining}</p>
+                    <p className="text-gray-600">Used: {result.used === '1' || result.used === true ? 'Yes' : 'No'}</p>
+                    <p className="text-gray-600">Checked-in By: {result.checked_in_by}</p>
+                    {result.checked_in_at && (
+                      <p className="text-gray-600">
+                        Checked-in At: {new Date(result.checked_in_at).toLocaleString()}
+                      </p>
+                    )}
+                    {result.created_at && (
+                      <p className="text-gray-600">
+                        Created: {new Date(result.created_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={handleCheckIn}
-                  className="w-full px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg"
-                  disabled={loading}
+                  className="w-full px-3 sm:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
+                  disabled={loading || result.remaining === 0}
                 >
                   Check In
                 </button>
@@ -320,14 +378,14 @@ const Scanner = () => {
         {/* QR Scanner Modal */}
         {isScanning && (
           <div className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 pt-8 z-50 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[90vw] md:max-w-lg p-4 md:p-6">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-lg p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Scan QR Code</h3>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900">Scan QR Code</h3>
                 <button
                   onClick={stopScanning}
-                  className="text-gray-500 hover:text-gray-700 p-2 rounded-full transition-colors"
+                  className="text-gray-500 hover:text-gray-700 p-1 sm:p-2 rounded-full transition-colors"
                 >
-                  <FaTimes className="text-lg" />
+                  <FaTimes className="text-base sm:text-lg" />
                 </button>
               </div>
               <div className="relative aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">

@@ -10,53 +10,69 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 const PaymentStatus = () => {
   const location = useLocation();
   const [status, setStatus] = useState('pending');
-  const [purchaseId, setPurchaseId] = useState(localStorage.getItem('pendingPurchaseId') || null);
+  const [purchaseId, setPurchaseId] = useState(location.state?.purchaseId || localStorage.getItem('pendingPurchaseId') || null);
   const [qrCode, setQrCode] = useState(null);
-  const [eventName, setEventName] = useState(localStorage.getItem('eventName') || 'Unnamed Event');
-  const [ticketQuantity, setTicketQuantity] = useState(parseInt(localStorage.getItem('ticketQuantity')) || 1);
-  const [transactionRef, setTransactionRef] = useState(localStorage.getItem('transactionRef') || 'N/A');
-  const [ticketPrice, setTicketPrice] = useState(localStorage.getItem('ticketPrice') || 'N/A');
+  const [eventName, setEventName] = useState(location.state?.eventName || localStorage.getItem('eventName') || 'Unnamed Event');
+  const [ticketQuantity, setTicketQuantity] = useState(location.state?.ticketQuantity || parseInt(localStorage.getItem('ticketQuantity')) || 1);
+  const [transactionRef, setTransactionRef] = useState(location.state?.trxref || localStorage.getItem('transactionRef') || 'N/A');
+  const [ticketPrice, setTicketPrice] = useState(location.state?.ticketPrice || localStorage.getItem('ticketPrice') || 'N/A');
   const [loading, setLoading] = useState(false);
   const flyerRefs = useRef([]);
 
-  const verifyPayment = async (refNo, purchaseId) => {
+  const verifyPayment = async (refNo) => {
     const toastId = toast.loading('Verifying payment...');
     setLoading(true);
-    console.log('Starting payment verification:', { refNo, purchaseId });
-    try {
-      const token = localStorage.getItem('token');
-      console.log('Verification inputs:', { refNo, purchaseId, token: token ? 'Present' : 'Missing' });
+    console.log('Starting payment verification:', { refNo });
 
-      if (!token) {
-        throw new Error('Authentication token is missing. Please log in again.');
+    try {
+      if (!refNo) {
+        throw new Error('Transaction reference is missing.');
       }
 
-      const response = await axios.get(`${API_URL}/purchases/${purchaseId}/verify`, {
-        params: { ref_no: refNo },
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        withCredentials: true,
-      });
+      let response;
+      // Try GET /purchases/{refNo}/verify first
+      try {
+        console.log(`Calling GET verify endpoint: ${API_URL}/purchases/${refNo}/verify`);
+        response = await axios.get(`${API_URL}/purchases/${refNo}/verify`, {
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true,
+        });
+      } catch (getError) {
+        console.warn('GET request failed, trying POST /purchases/verify:', getError.response || getError);
+        // Fallback to POST /purchases/verify
+        response = await axios.post(
+          `${API_URL}/purchases/verify`,
+          { reference: refNo },
+          { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+        );
+      }
 
       console.log('Payment verification response:', JSON.stringify(response.data, null, 2));
 
       if (response.status === 200 && response.data) {
-        const isSuccess = response.data.transaction?.paystack_response?.status === true ||
-                         response.data.message?.toLowerCase().includes('transaction verified');
-        const status = isSuccess ? 'success' : response.data.transaction?.paystack_response?.data?.status || 'failed';
+        const isSuccess =
+          response.data.transaction?.paystack_response?.status === true ||
+          response.data.message?.toLowerCase().includes('transaction verified');
+        const status = isSuccess
+          ? 'success'
+          : response.data.transaction?.paystack_response?.data?.status || 'failed';
         setStatus(status);
         setQrCode(response.data.qr_code || null);
         setTransactionRef(response.data.transaction?.ref_no || refNo || 'N/A');
-        setTicketPrice(response.data.transaction?.paystack_response?.data?.amount 
-          ? (response.data.transaction.paystack_response.data.amount / 100).toFixed(2) 
-          : localStorage.getItem('ticketPrice') || 'N/A');
-        setEventName(response.data.transaction?.event_name || localStorage.getItem('eventName') || 'Unnamed Event');
+        setTicketPrice(
+          response.data.transaction?.paystack_response?.data?.amount
+            ? (response.data.transaction.paystack_response.data.amount / 100).toFixed(2)
+            : location.state?.ticketPrice || localStorage.getItem('ticketPrice') || 'N/A'
+        );
+        setEventName(
+          response.data.transaction?.purchase?.event?.name ||
+            location.state?.eventName ||
+            localStorage.getItem('eventName') || 'Unnamed Event'
+        );
         setTicketQuantity(
-          response.data.transaction?.quantity 
-            ? parseInt(response.data.transaction.quantity) 
-            : parseInt(localStorage.getItem('ticketQuantity')) || 1
+          response.data.transaction?.purchase?.quantity
+            ? parseInt(response.data.transaction.purchase.quantity)
+            : location.state?.ticketQuantity || parseInt(localStorage.getItem('ticketQuantity')) || 1
         );
 
         toast.success(response.data.message || `Transaction ${status}`, { id: toastId });
@@ -70,20 +86,29 @@ const PaymentStatus = () => {
           localStorage.removeItem('transactionRef');
         }
       } else {
-        setStatus('failed');
-        toast.error('Unexpected response structure', { id: toastId });
-        console.error('Unexpected response:', response);
+        throw new Error('Unexpected response structure');
       }
     } catch (err) {
-      console.error('Error verifying payment:', { error: err.response || err, stack: err.stack });
+      console.error('Error verifying payment:', err);
       const errorMessage =
-        err.response?.data?.message === 'Unauthenticated'
-          ? 'You are not authenticated. Please log in again.'
-          : err.code === 'ERR_NETWORK'
-            ? 'Failed to verify payment due to network issues. Please check your connection.'
+        err.code === 'ERR_NETWORK'
+          ? 'Failed to verify payment due to network issues.'
+          : err.response?.status === 404
+            ? 'Verification endpoint not found. Please confirm payment status manually or contact support.'
             : err.response?.data?.message || err.message || 'Error verifying payment';
-      setStatus('failed');
+      setStatus(location.state?.status === 'success' ? 'success' : 'failed');
       toast.error(errorMessage, { id: toastId });
+
+      if (err.response?.status === 404 && location.state?.status === 'success') {
+        setQrCode(location.state?.qrCode || null);
+        setTransactionRef(location.state?.trxref || refNo);
+        setTicketPrice(
+          location.state?.ticketPrice || (location.state?.ticketPrice / 100)?.toFixed(2) || ticketPrice
+        );
+        setEventName(location.state?.eventName || eventName);
+        setTicketQuantity(location.state?.ticketQuantity || ticketQuantity);
+        toast.info('Payment appears successful based on callback data. Please download your tickets.');
+      }
     } finally {
       setLoading(false);
     }
@@ -91,23 +116,25 @@ const PaymentStatus = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const trxref = params.get('trxref') || params.get('reference');
-    console.log('URL query params:', { trxref, purchaseId });
+    const trxref = params.get('trxref') || params.get('reference') || location.state?.trxref;
+    const statePurchaseId = location.state?.purchaseId || localStorage.getItem('pendingPurchaseId');
 
-    if (trxref && purchaseId) {
-      verifyPayment(trxref, purchaseId);
+    console.log('Initial state and params:', { trxref, statePurchaseId });
+
+    setPurchaseId(statePurchaseId);
+    setTransactionRef(trxref);
+
+    if (trxref || location.state?.trxref) {
+      verifyPayment(trxref || location.state?.trxref);
     } else {
       setStatus('failed');
-      const errorMessage = !trxref ? 'Missing transaction reference' : 'Missing purchase ID';
-      toast.error(errorMessage);
-      console.error('Verification skipped:', errorMessage);
+      toast.error('Missing transaction reference. Please try again or contact support.');
     }
-  }, [location, purchaseId]);
+  }, [location]);
 
   const downloadIndividualTicket = async (index) => {
     if (flyerRefs.current[index] && qrCode) {
       setLoading(true);
-      console.log('Starting individual ticket download:', { index, qrCode });
       try {
         const canvas = await html2canvas(flyerRefs.current[index], {
           backgroundColor: '#ffffff',
@@ -117,14 +144,12 @@ const PaymentStatus = () => {
         link.download = `Ticket-${index + 1}-${purchaseId || 'unknown'}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        console.log('Individual ticket downloaded:', { index });
       } catch (error) {
-        console.error('Error generating individual ticket flyer:', { error, stack: error.stack });
+        console.error('Error generating ticket flyer:', error);
         const link = document.createElement('a');
         link.download = `QR-Ticket-${index + 1}-${purchaseId || 'unknown'}.png`;
         link.href = qrCode;
         link.click();
-        console.log('Fallback QR download triggered:', { index });
       }
       setLoading(false);
     }
@@ -251,11 +276,19 @@ const PaymentStatus = () => {
             <p className="text-gray-600 text-xs md:text-sm mb-4 px-2">
               Your payment could not be processed. Please try again or contact support.
             </p>
+            {localStorage.getItem('pendingPurchaseId') && (
+              <Link
+                to="/ticket"
+                className="inline-block bg-pryClr text-white py-1 px-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-xs md:text-sm mt-4"
+              >
+                Try Again
+              </Link>
+            )}
           </>
         )}
         <Link
           to="/"
-          className="inline-block bg-pryClr text-white py-1 px-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-xs md:text-sm"
+          className="inline-block bg-pryClr text-white py-1 px-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-xs md:text-sm mt-4"
         >
           Back to Home
         </Link>

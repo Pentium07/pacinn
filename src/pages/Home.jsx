@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import React, { useEffect, useRef } from 'react';
 import { Icon } from '@iconify/react';
 // import { NavLink } from 'react-router-dom';
-import { FaFacebookF, FaTwitter, FaInstagram, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaWhatsapp } from 'react-icons/fa';
+import { FaFacebookF, FaTwitter, FaInstagram, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaWhatsapp, FaStar } from 'react-icons/fa';
 
 const Home = () => {
   const cards = [
@@ -102,38 +102,28 @@ const Home = () => {
   ];
 
 
-  const testimonials = [
-    {
-      id: 1,
-      name: "Chinelo Okafor",
-      review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
-    },
-    {
-      id: 2,
-      name: "Emeka Nwosu",
-      review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
-    },
-    {
-      id: 3,
-      name: "Amina Bello",
-      review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
-    },
-    {
-      id: 4,
-      name: "Tunde Adeyemi",
-      review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
-    },
-    {
-      id: 5,
-      name: "Funke Balogun",
-      review: "A perfect blend of elegance and comfort. The staff went above and beyond to make our stay special.",
-    },
-    {
-      id: 6,
-      name: "Ifeanyi Okeke",
-      review: "Incredible experience! The atmosphere was vibrant, and the service was impeccable. Can't wait to return!",
-    },
-  ];
+const testimonials = [
+  {
+    id: 1,
+    name: "Chinelo Okafor",
+    review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
+  },
+  {
+    id: 2,
+    name: "Emeka Nwosu",
+    review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
+  },
+  {
+    id: 3,
+    name: "Amina Bello",
+    review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
+  },
+  {
+    id: 4,
+    name: "Tunde Adeyemi",
+    review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
+  },
+];
 
 
 
@@ -322,37 +312,51 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="w-full flex flex-col gap-12 items-center justify-center text-gray-900 py-12 md:py-12 bg-tetClr/40">
-        <div className="w-[100%] flex flex-col gap-10 items-center text-center">
-          <div className="w-full md:w-[70%] flex flex-col gap-6 items-center">
-            <h2 className="font-bold text-3xl md:text-5xl text-trdClr">
-              Guest Testimonials
-            </h2>
-            <p className="w-full text-sm md:text-lg leading-7 md:leading-9 text-pryClr">
-              Hear the heartfelt stories of our guests who found luxury and warmth at Pac Inn.
-            </p>
-          </div>
-          <div className="w-full overflow-hidden relative">
-            <div className="flex animate-scrollRightToLeft gap-6 py-6">
-              {[...testimonials, ...testimonials].map((testimonial, index) => (
-                <div
-                  key={`${testimonial.id}-${index}`}
-                  className="flex-none w-[90%] sm:w-[60%] md:w-[40%] lg:w-[30%] min-w-[320px] max-w-[400px] bg-white rounded-3xl shadow-lg p-6 md:p-8 border-t-4 border-trdClr"
-                >
-                  <div className="flex flex-col gap-4 text-center relative">
-                    <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight">
-                      {testimonial.name}
-                    </h3>
-                    <p className="text-base md:text-lg text-gray-600 leading-relaxed font-light max-w-[360px] mx-auto italic">
-                      "{testimonial.review}"
-                    </p>
+    <div className="w-full bg-tetClr/50 py-12 md:py-16 lg:py-20">
+      <div className="w-[90%] mx-auto ">
+        {/* Header */}
+        <div className="text-center mb-10 md:mb-12 lg:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-trdClr tracking-tight">
+            Our Guests' Experiences
+          </h2>
+          <p className="mt-4 text-sm md:text-lg lg:text-xl text-trdClr mx-auto leading-7 md:leading-8">
+            Hear from our valued guests about their remarkable stays at Pac Inn, where luxury meets heartfelt hospitality.
+          </p>
+        </div>
+
+        {/* Testimonials Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          {testimonials.map((testimonial) => (
+            <div
+              key={testimonial.id}
+              className="bg-white rounded-xl shadow-md p-4 md:p-6 border-l-4 border-trdClr transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+            >
+              <div className="flex flex-col gap-4 text-center">
+                {/* Avatar Placeholder */}
+                <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full bg-trdClr flex items-center justify-center text-white font-semibold text-lg md:text-xl">
+                  {testimonial.name[0]}
+                </div>
+                {/* Name and Rating */}
+                <div>
+                  <h3 className="text-base md:text-lg font-semibold text-slate-800">
+                    {testimonial.name}
+                  </h3>
+                  <div className="flex justify-center gap-1 mt-2">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar key={i} className="text-amber-400 text-sm md:text-base" />
+                    ))}
                   </div>
                 </div>
-              ))}
+                {/* Review */}
+                <p className="text-sm md:text-base text-gray-600 leading-relaxed font-medium">
+                  "{testimonial.review}"
+                </p>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
+    </div>
 
       <div className="w-full flex flex-col gap-12 items-center justify-center text-gray-800 py-12 md:py-20 bg-gradient-to-b from-white to-teal-50">
         <div className="w-[90%] flex flex-col gap-10">

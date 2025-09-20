@@ -32,16 +32,8 @@ const Ticket = () => {
 
     const fetchPage = async (page = 1, accumulatedEvents = []) => {
       try {
-        const token = localStorage.getItem('token');
-        console.log(`Fetching page ${page} with token:`, token ? 'Present' : 'Missing');
-
-        const headers = {
-          'Content-Type': 'application/json',
-        };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
         const response = await axios.get(`${API_URL}/events/latest?page=${page}&t=${Date.now()}`, {
-          headers,
+          headers: { 'Content-Type': 'application/json' },
           withCredentials: true,
         });
 
@@ -61,8 +53,6 @@ const Ticket = () => {
           fetchedEvents = [];
         }
 
-        console.log(`Events extracted (page ${page}):`, fetchedEvents);
-
         const allEvents = [...accumulatedEvents, ...fetchedEvents];
 
         const nextPage = response.data.data?.current_page
@@ -73,30 +63,17 @@ const Ticket = () => {
         const hasMorePages = response.data.data?.next_page_url || response.data.meta?.next_page_url;
         const totalEvents = response.data.meta?.total || response.data.data?.total || allEvents.length;
 
-        console.log(`Pagination (page ${page}):`, {
-          nextPage,
-          hasMorePages: !!hasMorePages,
-          totalEvents,
-          currentEvents: allEvents.length,
-        });
-
         if (hasMorePages && nextPage && allEvents.length < totalEvents) {
-          console.log(`Proceeding to fetch page ${nextPage}`);
           return fetchPage(nextPage, allEvents);
-        } else {
-          console.log(`Pagination complete. Total events fetched: ${allEvents.length}`);
         }
 
         const mappedEvents = allEvents.map(event => {
-          if (!event.id || !event.name || !event.description || !event.tickets) {
-            console.warn('Event missing required fields:', event);
-          }
           const tickets = Array.isArray(event.tickets)
             ? event.tickets.map(ticket => ({
-              type: ticket.type || 'Regular',
-              price: typeof ticket.price === 'string' ? parseFloat(ticket.price) : ticket.price || 0,
-              quantity: typeof ticket.quantity === 'string' ? parseInt(ticket.quantity) : ticket.quantity || 0,
-            }))
+                type: ticket.type || 'Regular',
+                price: typeof ticket.price === 'string' ? parseFloat(ticket.price) : ticket.price || 0,
+                quantity: typeof ticket.quantity === 'string' ? parseInt(ticket.quantity) : ticket.quantity || 0,
+              }))
             : [{ type: 'Regular', price: 0, quantity: 0 }];
 
           return {
@@ -106,25 +83,22 @@ const Ticket = () => {
             tickets,
             minPrice: tickets.length > 0 ? Math.min(...tickets.map(t => t.price)) : 0,
             image: event.image
-              ? (event.image.startsWith('http')
+              ? event.image.startsWith('http')
                 ? event.image
-                : `${STORAGE_URL}/${event.image}`)
+                : `${STORAGE_URL}/${event.image}`
               : 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?...',
             canPay: event.canPay === '1',
           };
         });
 
-        console.log('Final mapped events:', JSON.stringify(mappedEvents, null, 2));
         setEvents(mappedEvents);
         setIsLoading(false);
       } catch (err) {
-        console.error(`Error fetching events (page ${page}):`, { error: err.response || err, stack: err.stack });
+        console.error(`Error fetching events (page ${page}):`, err);
         const errorMessage =
-          err.response?.data?.message === 'Unauthenticated'
-            ? 'You are not authenticated. Please log in again.'
-            : err.code === 'ERR_NETWORK'
-              ? 'Failed to fetch events due to CORS or network issues. Please contact the administrator.'
-              : err.response?.data?.message || 'Failed to fetch events.';
+          err.code === 'ERR_NETWORK'
+            ? 'Failed to fetch events due to network issues.'
+            : err.response?.data?.message || 'Failed to fetch events.';
         setError(errorMessage);
         setEvents([]);
         setIsLoading(false);
@@ -166,18 +140,6 @@ const Ticket = () => {
     onSubmit: async (values, { resetForm }) => {
       if (!selectedEvent) return;
       try {
-        const token = localStorage.getItem('token');
-        console.log('Initiating purchase with token:', token ? 'Present' : 'Missing');
-
-        if (!token) {
-          throw new Error('Authentication token is missing. Please log in again.');
-        }
-
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        };
-
         localStorage.setItem('eventName', selectedEvent.name);
         localStorage.setItem('ticketQuantity', values.quantity.toString());
         localStorage.setItem('ticketPrice', calculateTotal().toLocaleString('en-NG'));
@@ -192,14 +154,11 @@ const Ticket = () => {
             ticket_type: values.ticket_type,
             quantity: values.quantity,
           },
-          { headers, withCredentials: true }
+          { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
         );
-
-        console.log('Purchase response:', JSON.stringify(purchaseResponse.data, null, 2));
 
         if (purchaseResponse.data.purchase?.id) {
           const purchaseId = purchaseResponse.data.purchase.id;
-          console.log(`Purchase ID: ${purchaseId}`);
           localStorage.setItem('pendingPurchaseId', purchaseId);
 
           const paystackResponse = await axios.post(
@@ -210,39 +169,29 @@ const Ticket = () => {
               ticket_type: values.ticket_type,
               quantity: values.quantity,
             },
-            { headers, withCredentials: true }
+            { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
           );
-
-          console.log('Paystack initialization response:', JSON.stringify(paystackResponse.data, null, 2));
 
           const paystackData = paystackResponse.data.transaction?.paystack_response;
           if (paystackData?.status && paystackData.data?.authorization_url) {
             if (paystackData.data.reference) {
               localStorage.setItem('transactionRef', paystackData.data.reference);
             }
-            // Navigate to payment status page with state instead of redirect
-            navigate('/payment-status', {
-              state: {
-                trxref: paystackData.data.reference,
-                purchaseId,
-              },
-            });
+            window.location.href = paystackData.data.authorization_url;
             setSelectedEvent(null);
             resetForm();
           } else {
-            throw new Error('Failed to initialize Paystack payment: Invalid response structure');
+            throw new Error('Failed to initialize Paystack payment: Invalid authorization URL');
           }
         } else {
           throw new Error('Failed to create purchase record');
         }
       } catch (err) {
-        console.error('Error processing payment:', { error: err.response || err, stack: err.stack });
+        console.error('Error processing payment:', err);
         const errorMessage =
-          err.response?.data?.message === 'Unauthenticated'
-            ? 'You are not authenticated. Please log in again.'
-            : err.code === 'ERR_NETWORK'
-              ? 'Failed to process payment due to CORS or network issues. Please contact the administrator.'
-              : err.response?.data?.message || err.message || 'Failed to process payment.';
+          err.code === 'ERR_NETWORK'
+            ? 'Failed to process payment due to network issues.'
+            : err.response?.data?.message || 'Failed to process payment.';
         setError(errorMessage);
         navigate('/payment-status', {
           state: {
@@ -432,7 +381,7 @@ const Ticket = () => {
                   >
                     {selectedEvent.tickets.map((ticket) => (
                       <option key={ticket.type} value={ticket.type}>
-                        {ticket.type} (₦{ticket.price.toLocaleString('en-NG')}, {ticket.quantity} available)
+                        {ticket.type} (₦{ticket.price.toLocaleString('en-NG')})
                       </option>
                     ))}
                   </select>

@@ -32,7 +32,7 @@ const Home = () => {
     {
       title: 'Event & Party',
       subtitle: 'Host unforgettable gatherings in our vibrant, versatile venues, equipped with modern facilities and customizable setups to make every occasion truly special.',
-      image: assets.pic1,
+      image: assets.pic4,
       bgColor: 'bg-tetClr/60',
       textColor: 'text-white',
     },
@@ -147,15 +147,18 @@ const testimonials = [
 
         {/* Wrapper with 90% width */}
         <div className="relative z-10 w-[90%] mx-auto h-full flex items-center text-center md:text-left">
-          <div className="w-full flex flex-col gap-8 md:gap-10 md:w-[55%]">
-            <h1 className="text-3xl font-bold text-white md:text-6xl">
+          <div className="w-full flex flex-col gap-10 md:gap-10 md:w-[55%]">
+            <h1 className="text-3xl font-bold text-white md:text-6xl hidden md:block">
               Welcome to <span className="text-secClr">Pac Inn</span>
             </h1>
-            <p className="text-base text-gray-200 md:text-lg leading-relaxed">
+            <h1 className="text-xl  text-white md:text-6xl block md:hidden">
+              Welcome to <br /> <span className="text-secClr font-bold text-6xl">Pac Inn</span>
+            </h1>
+            <p className="text-sm text-gray-200 md:text-lg leading-relaxed">
               Welcome to Pac Inn Hotel, where comfort meets vibrant energy. From our
               cozy rooms and friendly staff to the lively bar and exciting game
               center, we create a space where every guest feels at home and every
-              moment is memorable
+              moment is memorable.
             </p>
             <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
               <NavLink

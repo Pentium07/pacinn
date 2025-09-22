@@ -168,56 +168,66 @@ const PaymentStatus = () => {
   `;
 
   return (
-    <div className="min-h-screen w-full bg-gray-100 flex items-start justify-center py-8 md:pt-20">
+    <div className="w-full bg-trdClr/15 flex items-center justify-center py-26">
       <style>{shakeAnimation}</style>
-      <div className="bg-white rounded-lg shadow-md p-4 md:p-6 w-full md:w-[60%] lg:w-[50%] mx-auto text-center">
+      <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-[90%] md:w-[55%]  mx-auto">
         {status === 'success' ? (
           <>
             <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={200} />
-            <div className="mb-4">
-              <svg
-                className="w-10 h-10 md:w-12 md:h-12 text-green-500 mx-auto"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full mb-4">
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Payment Successful!</h1>
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">{eventName}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm md:text-base text-gray-600 mb-6">
+                <p>Quantity: {ticketQuantity} ticket(s)</p>
+                <p>Total Price: ₦{ticketPrice}</p>
+                <p>Ref: {transactionRef}</p>
+              </div>
             </div>
-            <h1 className="text-base md:text-lg font-bold text-gray-900 mb-3">Payment Successful!</h1>
-            <h2 className="text-sm md:text-base font-semibold text-gray-800 mb-2">Event: {eventName}</h2>
-            <p className="text-gray-600 text-xs md:text-sm mb-2">Quantity: {ticketQuantity} ticket(s)</p>
-            <p className="text-gray-600 text-xs md:text-sm mb-4">Total Price: ₦{ticketPrice}</p>
             {qrCode && (
-              <div className="mb-4 w-full">
-                <h3 className="text-xs md:text-base font-semibold text-gray-900 mb-3">Your Tickets</h3>
-                <p className="text-xs text-gray-500 mb-3">Download each ticket individually below.</p>
-                <div className={ticketQuantity === 1 ? 'flex justify-center w-full' : 'grid grid-cols-1 md:grid-cols-2 gap-3 w-full'}>
+              <div className="mb-8">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4 text-center">Your Tickets</h3>
+                <p className="text-sm text-gray-500 mb-6 text-center">Download each ticket individually below.</p>
+                <div className="flex flex-wrap justify-center gap-6">
                   {Array.from({ length: ticketQuantity }).map((_, index) => {
                     const uniqueRef = `${transactionRef}-TKT${String(index + 1).padStart(3, '0')}`;
                     return (
                       <div
                         key={index}
                         ref={(el) => (flyerRefs.current[index] = el)}
-                        className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center w-full max-w-xs mx-auto"
+                        className="p-4 bg-white border-2 border-tetClr/20 rounded-lg shadow-md w-full max-w-xs"
                       >
-                        <p className="text-xs md:text-sm font-medium text-gray-700 mb-2">Ticket {index + 1} of {ticketQuantity}</p>
-                        <p className="text-xs text-gray-500 mb-2">Ref: {uniqueRef}</p>
-                        <img
-                          src={qrCode}
-                          alt={`QR Code for ticket ${index + 1}`}
-                          className="w-20 h-20 md:w-24 md:h-24 mx-auto border-2 border-gray-300 rounded-lg mb-2"
-                        />
+                        <div className="relative bg-gradient-to-b from-tetClr/10 to-white rounded-lg p-4">
+                          <div className="absolute top-0 left-0 w-full h-8 bg-tetClr/30 rounded-t-lg"></div>
+                          <h4 className="text-lg font-bold text-gray-900 mt-8 mb-3 text-center">{eventName}</h4>
+                          <p className="text-sm text-gray-600 mb-2 text-center">Ticket {index + 1} of {ticketQuantity}</p>
+                          <p className="text-sm text-gray-600 mb-3 text-center">Ref: {uniqueRef}</p>
+                          <img
+                            src={qrCode}
+                            alt={`QR Code for ticket ${index + 1}`}
+                            className="w-40 h-40 mx-auto border-2 border-gray-200 rounded-md mb-3"
+                          />
+                          <p className="text-xs text-gray-500 text-center">Scan this QR code at the event</p>
+                        </div>
                         <button
                           onClick={() => downloadIndividualTicket(index)}
                           disabled={loading}
-                          className="bg-tetClr text-white py-1 px-2 rounded-lg text-xs md:text-sm font-semibold hover:bg-tetClr/90 transition-all duration-300 disabled:opacity-50 w-full"
+                          className="mt-4 w-full bg-tetClr text-white py-2 rounded-lg text-sm font-semibold hover:bg-tetClr/90 transition-all duration-300 disabled:opacity-50"
                         >
                           {loading ? 'Downloading...' : `Download Ticket ${index + 1}`}
                         </button>
@@ -227,59 +237,63 @@ const PaymentStatus = () => {
                 </div>
               </div>
             )}
-            <p className="text-gray-600 text-xs md:text-sm mb-4">
+            <p className="text-sm text-gray-600 mb-6 text-center">
               A confirmation email with your ticket details has been sent to your email.
             </p>
           </>
         ) : status === 'pending' ? (
           <>
-            <div className="mb-4 shake">
-              <svg
-                className="w-10 h-10 md:w-12 md:h-12 text-yellow-500 mx-auto"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+            <div className="text-center mb-8 shake">
+              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-yellow-100 rounded-full mb-4">
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-yellow-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Payment Pending</h1>
+              <p className="text-sm md:text-base text-gray-600 mb-6 max-w-md mx-auto">
+                Your payment is pending. You will receive an email with the QR code once confirmed.
+              </p>
             </div>
-            <h1 className="text-base md:text-lg font-bold text-gray-900 mb-3">Payment Pending</h1>
-            <p className="text-gray-600 text-xs md:text-sm mb-4 px-2">
-              Your payment is pending. You will receive an email with the QR code once confirmed.
-            </p>
           </>
         ) : (
           <>
-            <div className="mb-4 shake">
-              <svg
-                className="w-10 h-10 md:w-12 md:h-12 text-red-500 mx-auto"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+            <div className="text-center mb-8 shake">
+              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-red-100 rounded-full mb-4">
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Payment Failed</h1>
+              <p className="text-sm md:text-base text-gray-600 mb-6 max-w-md mx-auto">
+                Your payment could not be processed. Please try again or contact support.
+              </p>
             </div>
-            <h1 className="text-base md:text-lg font-bold text-gray-900 mb-3">Payment Failed</h1>
-            <p className="text-gray-600 text-xs md:text-sm mb-4 px-2">
-              Your payment could not be processed. Please try again or contact support.
-            </p>
             {localStorage.getItem('pendingPurchaseId') && (
               <Link
                 to="/ticket"
-                className="inline-block bg-pryClr text-white py-1 px-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-xs md:text-sm mt-4"
+                className="inline-block bg-pryClr text-white py-2 px-6 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base mb-4"
               >
                 Try Again
               </Link>
@@ -288,7 +302,7 @@ const PaymentStatus = () => {
         )}
         <Link
           to="/"
-          className="inline-block bg-pryClr text-white py-1 px-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-xs md:text-sm mt-4"
+          className="inline-block bg-pryClr text-white py-2 px-6 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base"
         >
           Back to Home
         </Link>

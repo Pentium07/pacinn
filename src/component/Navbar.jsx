@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaBars, FaTimes, FaHome, FaCalendar, FaEnvelope, FaTicketAlt } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import assets from '../assets/assests';
@@ -8,17 +8,44 @@ const Navbar = () => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
+    useEffect(() => {
+    if (isOpen) {
+      const scrollY = window.scrollY; // current position
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.overflow = "hidden";
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
+      // restore previous scroll
+      window.scrollTo(0, parseInt(scrollY || "0") * -1);
+    }
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   return (
     <>
       {/* Navbar is fixed on top of everything */}
       <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-lg">
-        <div className="container mx-auto w-[90%] py-2 flex justify-between items-center">
+        <div className="container mx-auto w-[90%] py-4 md:py-2 flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center">
             <img
               src={assets.logo}
               alt="Logo"
-              className="h-12 transform hover:scale-105 transition-transform duration-300"
+              className="h-10 md:h-12 transform hover:scale-105 transition-transform duration-300"
             />
           </div>
 
@@ -138,11 +165,11 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Links */}
-          <nav className="flex flex-col space-y-1 p-6 flex-grow">
+          <nav className="flex flex-col space-y-4 p-6 flex-grow">
             <NavLink to="/" onClick={toggleMenu}>
               {({ isActive }) => (
                 <div
-                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all duration-300 ${
+                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all  duration-300 ${
                     isActive
                       ? 'bg-secClr/80 text-trdClr font-bold'
                       : 'text-pryClr hover:bg-secClr/50'
@@ -157,7 +184,7 @@ const Navbar = () => {
             <NavLink to="/booking" onClick={toggleMenu}>
               {({ isActive }) => (
                 <div
-                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all duration-300 ${
+                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all  duration-300 ${
                     isActive
                       ? 'bg-secClr/80 text-trdClr font-bold'
                       : 'text-pryClr hover:bg-secClr/50'
@@ -168,11 +195,25 @@ const Navbar = () => {
                 </div>
               )}
             </NavLink>
+            <NavLink to="/ticket" onClick={toggleMenu}>
+              {({ isActive }) => (
+                <div
+                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all  duration-300 ${
+                    isActive
+                      ? 'bg-secClr/80 text-trdClr font-bold'
+                      : 'text-pryClr hover:bg-secClr/50'
+                  }`}
+                >
+                  <FaTicketAlt className="mr-4 text-xl" />
+                  <span>Ticket</span>
+                </div>
+              )}
+            </NavLink>
 
             <NavLink to="/contact" onClick={toggleMenu}>
               {({ isActive }) => (
                 <div
-                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all duration-300 ${
+                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all  duration-300 ${
                     isActive
                       ? 'bg-secClr/80 text-trdClr font-bold'
                       : 'text-pryClr hover:bg-secClr/50'
@@ -184,20 +225,7 @@ const Navbar = () => {
               )}
             </NavLink>
 
-            <NavLink to="/ticket" onClick={toggleMenu}>
-              {({ isActive }) => (
-                <div
-                  className={`flex items-center text-lg py-4 px-6 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? 'bg-secClr/80 text-trdClr font-bold'
-                      : 'text-pryClr hover:bg-secClr/50'
-                  }`}
-                >
-                  <FaTicketAlt className="mr-4 text-xl" />
-                  <span>Ticket</span>
-                </div>
-              )}
-            </NavLink>
+            
           </nav>
 
           {/* Footer */}

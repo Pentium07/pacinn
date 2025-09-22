@@ -39,20 +39,20 @@ const Footer = () => {
       <div className="absolute -top-24 -right-24 w-48 md:w-56 lg:w-64 h-48 md:h-56 lg:h-64 rounded-full bg-[#001D3D] opacity-20"></div>
       <div className="absolute -bottom-32 -left-32 w-64 md:w-72 lg:w-80 h-64 md:h-72 lg:h-80 rounded-full bg-[#003566] opacity-20"></div>
       
-      <div className="relative z-10 py-4 md:py-6 lg:py-8">
-        <div className="w-full max-w-[95%] md:max-w-[90%] lg:max-w-[85%] mx-auto flex flex-col gap-6 md:gap-8 lg:gap-10">
+      <div className="relative z-10 py-8 md:py-12">
+        <div className="w-[90%]  mx-auto flex flex-col gap-6 md:gap-8 lg:gap-10">
           {/* Main Footer Content */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6 lg:gap-8">
             {/* Brand and Description */}
             <div className="flex flex-col gap-4 md:gap-5 lg:gap-6">
               <img src={assets.logo} className="w-16 md:w-18" alt="Pac Inn Hotel Logo" />
-              <p className="text-xs md:text-sm  text-gray-300 leading-relaxed max-w-[280px] md:max-w-xs">
+              <p className="text-sm md:text-sm  text-gray-300 leading-relaxed max-w-[280px] md:max-w-xs">
                 Experience luxury redefined at Pac Inn Hotel, where exceptional hospitality meets unforgettable memories.
               </p>
             </div>
 
             {/* Quick Links */}
-            <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 hidden md:block">
+            <div className="flex flex-col gap-4 md:gap-6 lg:gap-5 ">
               <h3 className="text-base md:text-lg lg:text-xl font-bold text-white relative pb-1 md:pb-2 after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-12 after:bg-gradient-to-r after:from-[#F0CB46] after:to-[#CCA000]">
                 Explore
               </h3>
@@ -61,7 +61,7 @@ const Footer = () => {
                   <NavLink
                     key={index}
                     to={`/${item.toLowerCase()}`}
-                    className="text-gray-300 text-xs md:text-sm  hover:text-[#F0CB46] transition-all duration-300 flex items-center group"
+                    className="text-gray-300 text-sm md:text-sm  hover:text-[#F0CB46] transition-all duration-300 flex items-center group"
                   >
                     {item}
                   </NavLink>
@@ -74,7 +74,7 @@ const Footer = () => {
               <h3 className="text-base md:text-lg lg:text-xl font-bold text-white relative pb-1 md:pb-2 after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-12 after:bg-gradient-to-r after:from-[#F0CB46] after:to-[#CCA000]">
                 Contact Us
               </h3>
-              <div className="flex flex-col gap-3 md:gap-4 text-gray-300 text-xs md:text-sm ">
+              <div className="flex flex-col gap-3 md:gap-4 text-gray-300 text-sm md:text-sm ">
                 <div className="flex items-start gap-2 md:gap-3">
                   <div className="mt-0.5 p-1 md:p-2 lg:p-3 bg-[#001D3D] rounded-md">
                     <FaMapMarkerAlt className="w-3.5 md:w-4 lg:w-5 h-3.5 md:h-4 lg:h-5 text-[#F0CB46]" />
@@ -120,7 +120,7 @@ const Footer = () => {
 
               {/* Newsletter Subscription */}
               <div className="flex flex-col gap-3 md:gap-4 mt-3 md:mt-4">
-                <p className="text-gray-300 text-xs md:text-sm ">Subscribe to our newsletter.</p>
+                <p className="text-gray-300 text-sm md:text-sm ">Subscribe to our newsletter.</p>
                 <div className="flex flex-col md:flex-row gap-2 md:gap-3 w-full">
                   <input
                     type="email"
@@ -142,7 +142,7 @@ const Footer = () => {
 
           {/* Copyright Section */}
           <div className="border-t border-[#003566] pt-3 md:pt-4 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-xs md:text-sm  text-gray-400">
+            <p className="text-sm md:text-sm  text-gray-400">
               © 2025 Pac Inn Hotel. All rights reserved.
             </p>
           </div>

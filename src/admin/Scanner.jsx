@@ -64,9 +64,10 @@ const Scanner = () => {
     setIsScanning(false);
   };
 
-  // Function to clear transaction reference input
+  // Function to clear transaction reference input and purchase details
   const clearTransactionRef = () => {
     setTransactionRef('');
+    setResult(null);
     setError(null);
   };
 
@@ -225,14 +226,7 @@ const Scanner = () => {
 
       if (response.status === 200) {
         const purchaseData = response.data.data || response.data.purchase || response.data;
-        setResult({
-          ...result,
-          checked_in_quantity: parseInt(response.data.checked_in_quantity) || parseInt(purchaseData.checked_in_quantity) || result.checked_in_quantity + 1,
-          remaining: parseInt(response.data.remaining) || parseInt(purchaseData.remaining) || result.quantity - (result.checked_in_quantity + 1),
-          checked_in_by: purchaseData.checked_in_by || result.checked_in_by || 'N/A',
-          used: purchaseData.used || (parseInt(response.data.remaining) === 0 ? '1' : '0'),
-          checked_in_at: purchaseData.checked_in_at || new Date().toISOString(),
-        });
+        setResult(null); // Clear purchase details after successful check-in
         setTransactionRef(''); // Clear the transaction reference input
         toast.success(response.data.message || 'Ticket checked in successfully', { id: toastId });
       } else {
@@ -269,64 +263,64 @@ const Scanner = () => {
   }, [isScanning, codeReader]);
 
   return (
-    <div className="min-h-screen bg-trdClr/15 py-12 w-full ">
-      <div className="w-[95%] sm:w-[90%] max-w-4xl mx-auto">
+    <div className="min-h-screen bg-trdClr/15 py-8 md:py-12 w-full">
+      <div className="w-[90%]  mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            QR Code & Transaction Scanner
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Verify Ticket
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
-            Scan a QR code or enter a transaction reference to validate and check in.
+          <p className="text-sm md:text-base lg:text-lg text-gray-600  mx-auto">
+            Scan a QR code or enter a transaction reference to check in.
           </p>
         </div>
 
         {/* Scanner Section */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-secClr bg-tetClr/30">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Scan or Enter Details</h2>
+          <div className="p-3 md:p-2 lg:p-4 border-b border-secClr bg-tetClr/30">
+            <h2 className="text-base md:text-lg lg:text-xl font-semibold text-gray-900">Scan or Enter Details</h2>
           </div>
-          <div className="p-4 sm:p-6 space-y-6">
+          <div className="p-4 lg:p-4 space-y-8">
             {/* QR Scanner Button */}
             <div className="flex justify-center">
               <button
                 onClick={() => setIsScanning(true)}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
+                className="flex items-center space-x-2 px-3 md:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base lg:text-lg"
                 disabled={loading}
               >
-                <FaQrcode className="text-base sm:text-lg" />
+                <FaQrcode className="text-base md:text-lg lg:text-xl" />
                 <span>Scan QR Code</span>
               </button>
             </div>
 
             {/* Transaction Reference Input */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">
+            <div className="space-y-4">
+              <label className="block text-sm md:text-base lg:text-lg font-medium text-gray-600">
                 Transaction Reference
               </label>
-              <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+              <div className="flex flex-col md:flex-row md:space-x-2 space-y-4 md:space-y-0">
                 <input
                   type="text"
                   value={transactionRef}
                   onChange={(e) => setTransactionRef(e.target.value)}
                   placeholder="Enter transaction reference (e.g., TXN68cea2f7da4da)"
-                  className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pryClr focus:border-pryClr text-sm sm:text-base"
+                  className="flex-1 px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pryClr focus:border-pryClr text-sm md:text-base lg:text-lg"
                   disabled={loading}
                 />
                 <div className="flex space-x-2">
                   <button
                     onClick={validateTransactionRef}
-                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
+                    className="w-full md:w-auto px-3 md:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base lg:text-lg"
                     disabled={loading}
                   >
                     Validate
                   </button>
                   <button
                     onClick={clearTransactionRef}
-                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base flex items-center justify-center"
+                    className="w-full md:w-auto px-3 md:px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base lg:text-lg flex items-center justify-center"
                     disabled={loading || !transactionRef}
                   >
-                    <FaTrash className="text-base sm:text-lg mr-1 sm:mr-2" />
+                    <FaTrash className="text-base md:text-lg lg:text-xl mr-1 md:mr-2" />
                     Clear
                   </button>
                 </div>
@@ -334,13 +328,13 @@ const Scanner = () => {
             </div>
 
             {/* Result and Check-in */}
-            {loading && <div className="text-center text-gray-600 text-sm sm:text-base">Loading...</div>}
-            {error && <div className="text-center text-red-500 text-sm sm:text-base">{error}</div>}
+            {loading && <div className="text-center text-gray-600 text-sm md:text-base lg:text-lg">Loading...</div>}
+            {error && <div className="text-center text-red-500 text-sm md:text-base lg:text-lg">{error}</div>}
             {result && (
               <div className="space-y-4">
-                <div className="p-4 bg-tetClr/30 rounded-lg border border-secClr">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">Purchase Details</h3>
-                  <div className="space-y-2 text-sm sm:text-base">
+                <div className="p-1 md:p-2 lg:p-4 bg-tetClr/30 rounded-lg border border-secClr">
+                  <h3 className="text-base md:text-lg lg:text-xl font-semibold text-gray-900">Purchase Details</h3>
+                  <div className="space-y-2 text-sm md:text-base lg:text-lg">
                     <p className="text-gray-600">Purchase ID: {result.id}</p>
                     <p className="text-gray-600">Full Name: {result.full_name}</p>
                     <p className="text-gray-600">Email: {result.email}</p>
@@ -365,7 +359,7 @@ const Scanner = () => {
                 </div>
                 <button
                   onClick={handleCheckIn}
-                  className="w-full px-3 sm:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
+                  className="w-full px-3 md:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base lg:text-lg"
                   disabled={loading || result.remaining === 0}
                 >
                   Check In
@@ -377,15 +371,15 @@ const Scanner = () => {
 
         {/* QR Scanner Modal */}
         {isScanning && (
-          <div className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 pt-8 z-50 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-lg p-4 sm:p-6">
+          <div className="fixed inset-0 bg-black/90 flex items-start justify-center p-1 md:p-2 lg:p-4 pt-8 z-50 overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[95vw] md:max-w-[90vw] lg:max-w-lg p-1 md:p-2 lg:p-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base sm:text-lg font-bold text-gray-900">Scan QR Code</h3>
+                <h3 className="text-base md:text-lg lg:text-xl font-bold text-gray-900">Scan QR Code</h3>
                 <button
                   onClick={stopScanning}
-                  className="text-gray-500 hover:text-gray-700 p-1 sm:p-2 rounded-full transition-colors"
+                  className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full transition-colors"
                 >
-                  <FaTimes className="text-base sm:text-lg" />
+                  <FaTimes className="text-base md:text-lg lg:text-xl" />
                 </button>
               </div>
               <div className="relative aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">

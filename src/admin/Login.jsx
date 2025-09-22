@@ -5,6 +5,7 @@ import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
+import assets from '../assets/assests';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,84 +31,89 @@ const Login = () => {
       .required('Password is required'),
   });
 
-const handleSubmit = async (values, { setSubmitting }) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/login`, values, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      withCredentials: true,
-    });
+  const handleSubmit = async (values, { setSubmitting }) => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/login`, values, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
 
-    console.log("Login response:", response.data); // 👈 SEE STRUCTURE HERE
+      console.log("Login response:", response.data);
 
-    if (response.status === 200) {
-      toast.success('Login successful');
+      if (response.status === 200) {
+        toast.success('Login successful');
 
-      // 🔑 Adjust this based on your backend response
-      const token = response.data.token || response.data.access_token || response.data?.data?.authorization?.token;
+        const token = response.data.token || response.data.access_token || response.data?.data?.authorization?.token;
 
-      if (token) {
-        localStorage.setItem("token", token);
-      } else {
-        console.error("No token found in login response");
+        if (token) {
+          localStorage.setItem("token", token);
+        } else {
+          console.error("No token found in login response");
+        }
+
+        navigate('/admin/dashboard');
       }
-
-      navigate('/admin/dashboard');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Login failed');
+    } finally {
+      setSubmitting(false);
     }
-  } catch (err) {
-    toast.error(err.response?.data?.message || 'Login failed');
-  } finally {
-    setSubmitting(false);
-  }
-};
-
-
-
+  };
 
   return (
-    <div className="min-h-screen bg-tetClr/50 flex items-center justify-center">
-      <div className="w-[90%] md:w-[50%] bg-white rounded-lg shadow-lg p-8 transform transition-all duration-300">
-        <h2 className="text-3xl font-bold text-center text-tetClr mb-6">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-cover bg-center relative overflow-hidden">
+      {/* Background Image */}
+      <img
+        src={assets.bg}
+        alt="Background"
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-tetClr/50 z-10"></div>
+      
+      <div className="relative w-[90%] md:w-[70%] lg:w-[50%] bg-white rounded-2xl shadow-2xl p-6 md:p-12 z-20">
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center text-tetClr mb-4 md:mb-6 lg:mb-8">Sign In</h2>
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
           {({ isSubmitting }) => (
-            <Form className="space-y-6">
+            <Form className="space-y-4 md:space-y-5 lg:space-y-6">
               <div>
-                <label htmlFor="login" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="login" className="block text-sm md:text-sm lg:text-base font-semibold text-gray-800 mb-1 md:mb-2">
                   Email or Username
                 </label>
-                <div className="relative mt-1">
-                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <div className="relative">
+                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm md:text-base lg:text-lg" />
                   <Field
                     type="text"
                     name="login"
                     id="login"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-2 md:py-2.5 lg:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr transition-all duration-300 text-sm md:text-sm lg:text-base bg-white/50"
                     placeholder="Enter your email or username"
                   />
                   <ErrorMessage
                     name="login"
                     component="div"
-                    className="text-red-500 text-sm mt-1"
+                    className="text-red-500 text-sm md:text-sm mt-1"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm md:text-sm lg:text-base font-semibold text-gray-800 mb-1 md:mb-2">
                   Password
                 </label>
-                <div className="relative mt-1">
-                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm md:text-base lg:text-lg" />
                   <Field
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     id="password"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr transition-all duration-200"
+                    className="w-full pl-10 pr-10 py-2 md:py-2.5 lg:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr transition-all duration-300 text-sm md:text-sm lg:text-base bg-white/50"
                     placeholder="Enter your password"
                   />
                   <button
@@ -115,12 +121,12 @@ const handleSubmit = async (values, { setSubmitting }) => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-tetClr transition duration-300"
                   >
-                    {showPassword ? <FaEyeSlash className="text-lg" /> : <FaEye className="text-lg" />}
+                    {showPassword ? <FaEyeSlash className="text-sm md:text-base lg:text-lg" /> : <FaEye className="text-sm md:text-base lg:text-lg" />}
                   </button>
                   <ErrorMessage
                     name="password"
                     component="div"
-                    className="text-red-500 text-sm mt-1"
+                    className="text-red-500 text-sm md:text-sm mt-1"
                   />
                 </div>
               </div>
@@ -128,16 +134,16 @@ const handleSubmit = async (values, { setSubmitting }) => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 bg-tetClr text-white rounded-lg font-semibold hover:bg-pryClr hover:shadow-md transition-all duration-300"
+                className="w-full py-2 md:py-2.5 lg:py-3 bg-tetClr text-white rounded-lg font-semibold hover:bg-pryClr hover:shadow-xl transition-all duration-300 text-sm md:text-sm lg:text-base"
               >
-                {isSubmitting ? 'Logging in...' : 'Login'}
+                {isSubmitting ? 'Logging in...' : 'Sign In'}
               </button>
             </Form>
           )}
         </Formik>
-        {/* <p className="mt-4 text-center text-sm text-gray-600">
+        {/* <p className="mt-4 md:mt-5 lg:mt-6 text-center text-sm md:text-sm lg:text-base text-gray-600">
           Don't have an account?{' '}
-          <a href="/register" className="text-tetClr hover:underline">
+          <a href="/register" className="text-tetClr hover:underline font-medium">
             Register
           </a>
         </p> */}

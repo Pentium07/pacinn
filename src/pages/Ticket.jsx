@@ -13,6 +13,7 @@ const Ticket = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showToast, setShowToast] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,10 +71,10 @@ const Ticket = () => {
         const mappedEvents = allEvents.map(event => {
           const tickets = Array.isArray(event.tickets)
             ? event.tickets.map(ticket => ({
-                type: ticket.type || 'Regular',
-                price: typeof ticket.price === 'string' ? parseFloat(ticket.price) : ticket.price || 0,
-                quantity: typeof ticket.quantity === 'string' ? parseInt(ticket.quantity) : ticket.quantity || 0,
-              }))
+              type: ticket.type || 'Regular',
+              price: typeof ticket.price === 'string' ? parseFloat(ticket.price) : ticket.price || 0,
+              quantity: typeof ticket.quantity === 'string' ? parseInt(ticket.quantity) : ticket.quantity || 0,
+            }))
             : [{ type: 'Regular', price: 0, quantity: 0 }];
 
           return {
@@ -112,8 +113,14 @@ const Ticket = () => {
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
   const handleBuy = (event) => {
     if (event.canPay) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
       setSelectedEvent(event);
     }
   };
@@ -139,6 +146,7 @@ const Ticket = () => {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!selectedEvent) return;
+      setShowToast(true);
       try {
         localStorage.setItem('eventName', selectedEvent.name);
         localStorage.setItem('ticketQuantity', values.quantity.toString());
@@ -205,6 +213,8 @@ const Ticket = () => {
           },
           replace: true,
         });
+      } finally {
+        setShowToast(false);
       }
     },
     enableReinitialize: true,
@@ -231,48 +241,70 @@ const Ticket = () => {
         </div>
 
         {isLoading ? (
-          <div className="text-center text-gray-600">Loading events...</div>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse flex space-x-4">
+              <div className="rounded-full bg-tetClr h-12 w-12"></div>
+              <div className="flex-1 space-y-6 py-1">
+                <div className="h-2 bg-tetClr rounded"></div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="h-2 bg-tetClr rounded col-span-2"></div>
+                    <div className="h-2 bg-tetClr rounded col-span-1"></div>
+                  </div>
+                  <div className="h-2 bg-tetClr rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : error ? (
           <div className="text-center text-gray-600">{error}</div>
         ) : events.length === 0 ? (
           <div className="text-center text-gray-600">No events found</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
             {events.map((event) => (
               <div
                 key={event.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-2xl"
               >
                 <div className="relative">
                   <img
                     src={event.image}
                     alt={event.name}
-                    className="w-full h-48 sm:h-56 md:h-64 object-cover"
+                    className="w-full h-72 md:h-64 object-cover"
                     loading="lazy"
                   />
-                  <div className="absolute top-4 right-4 bg-white text-tetClr py-1 px-3 rounded-full font-semibold text-xs sm:text-sm">
-                    {typeof event.minPrice === 'number' ? `₦${event.minPrice.toLocaleString('en-NG')}` : 'N/A'}
-                  </div>
-                  <div className="absolute top-4 left-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-xs sm:text-sm">
-                    {event.tickets[0]?.type || 'Regular'}
+                  <div className="absolute top-0 left-0 w-full h-16 flex items-center justify-between px-4">
+                    <span className="text-white font-semibold text-sm bg-tetClr rounded-full px-3 py-1">{event.tickets[0]?.type || 'Regular'}</span>
+                    <span className="text-white font-semibold text-sm bg-tetClr rounded-full px-3 py-1">
+                      {typeof event.minPrice === 'number' ? `₦${event.minPrice.toLocaleString('en-NG')}` : 'N/A'}
+                    </span>
                   </div>
                 </div>
-                <div className="p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{event.name}</h3>
-                  <p className="text-gray-600 text-sm sm:text-base mb-4">{event.subtitle}</p>
-                  <button
-                    onClick={() => handleBuy(event)}
-                    disabled={!event.canPay}
-                    className={`w-full bg-tetClr text-white py-2 sm:py-3 rounded-lg font-semibold hover:bg-tetClr/90 transition-all duration-300 shadow-md hover:shadow-lg ${!event.canPay ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    Buy Now
-                  </button>
+                <div className="p-5 flex flex-col flex-grow">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 line-clamp-2">{event.name}</h3>
+                  <p className="text-gray-600 text-sm flex-grow line-clamp-3">{event.subtitle}</p>
+                  <div className="mt-4">
+                    <button
+                      onClick={() => handleBuy(event)}
+                      disabled={!event.canPay}
+                      className={`w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/90 transition-all duration-300 shadow-md ${!event.canPay ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      Buy Now
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {showToast && (
+        <div className="fixed top-4 right-4 bg-tetClr text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+          Processing your request...
+        </div>
+      )}
 
       {selectedEvent && (
         <div className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 pt-8 z-50 overflow-y-auto">
@@ -300,8 +332,8 @@ const Ticket = () => {
                 {formik.values.ticket_type &&
                   selectedEvent.tickets.find(t => t.type === formik.values.ticket_type)?.price
                   ? `₦${selectedEvent.tickets
-                      .find(t => t.type === formik.values.ticket_type)
-                      .price.toLocaleString('en-NG')}`
+                    .find(t => t.type === formik.values.ticket_type)
+                    .price.toLocaleString('en-NG')}`
                   : 'N/A'}{' '}
                 ({formik.values.ticket_type || 'Select Ticket Type'})
               </p>
@@ -309,7 +341,7 @@ const Ticket = () => {
 
             <div className="md:w-3/5 p-4 sm:p-6">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6">Complete Your Purchase</h3>
-              <form onSubmit={formik.handleSubmit} className="space-y-4 mb-6">
+              <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                   <div className="relative">
@@ -426,8 +458,8 @@ const Ticket = () => {
                         {formik.values.ticket_type &&
                           selectedEvent.tickets.find(t => t.type === formik.values.ticket_type)?.price
                           ? `₦${selectedEvent.tickets
-                              .find(t => t.type === formik.values.ticket_type)
-                              .price.toLocaleString('en-NG')}`
+                            .find(t => t.type === formik.values.ticket_type)
+                            .price.toLocaleString('en-NG')}`
                           : 'N/A'}{' '}
                         x {formik.values.quantity} ticket(s)
                       </span>
@@ -445,13 +477,14 @@ const Ticket = () => {
                 </div>
 
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={formik.handleSubmit}
                   disabled={!formik.isValid || !selectedEvent || !selectedEvent.canPay}
                   className={`w-full bg-pryClr text-white py-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg ${!formik.isValid || !selectedEvent || !selectedEvent.canPay ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   Pay Now
                 </button>
-              </form>
+              </div>
 
               <p className="text-xs text-gray-500 text-center mt-4">
                 By proceeding, you agree to our Terms of Service and Privacy Policy.

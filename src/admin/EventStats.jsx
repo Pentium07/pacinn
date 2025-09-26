@@ -25,7 +25,7 @@ const EventStats = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/events/${eventId}/ticket-stats`, {
+      const response = await axios.get(`${API_URL}/api/events/${eventId}/ticket-stats`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -57,7 +57,7 @@ const EventStats = () => {
     try {
       const token = localStorage.getItem('token');
       const endpoint = filterType === 'checked-in' ? 'checked-in' : 'pending';
-      const response = await axios.get(`${API_URL}/events/${eventId}/${endpoint}`, {
+      const response = await axios.get(`${API_URL}/api/events/${eventId}/${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,

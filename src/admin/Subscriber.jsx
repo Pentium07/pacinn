@@ -20,7 +20,7 @@ const Subscriber = () => {
       if (!token) {
         throw new Error('No authentication token found');
       }
-      const response = await axios.get(`${API_URL}/newsletter`, {
+      const response = await axios.get(`${API_URL}/api/newsletter`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -53,7 +53,7 @@ const Subscriber = () => {
       if (!token) {
         throw new Error('No authentication token found');
       }
-      const response = await axios.delete(`${API_URL}/newsletter/${id}`, {
+      const response = await axios.delete(`${API_URL}/api/newsletter/${id}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,

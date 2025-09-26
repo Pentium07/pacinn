@@ -15,7 +15,7 @@ const Footer = () => {
     const toastId = toast.loading('Subscribing to newsletter...');
 
     try {
-      const response = await axios.post(`${API_URL}/newsletter/subscribe`, { email }, {
+      const response = await axios.post(`${API_URL}/api/newsletter/subscribe`, { email }, {
         headers: {
           'Content-Type': 'application/json',
         },

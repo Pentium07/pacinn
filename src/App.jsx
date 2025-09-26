@@ -16,12 +16,13 @@ import User from './admin/User';
 import PaymentStatus from './pages/PaymentStatus';
 import EventStats from './admin/EventStats';
 import Subscriber from './admin/Subscriber';
+import History from './admin/History';
+import Booking from './admin/Booking';
 
 const App = () => {
   return (
     <div>
       <Routes>
-        {/* Routes with Mode layout */}
         <Route
           path="/"
           element={
@@ -80,12 +81,14 @@ const App = () => {
         </Route>
 
         <Route path="/admin/dashboard" element={<Admin><Dashboard /></Admin>} />
-        <Route path="/admin/booking" element={<Admin><Room /></Admin>} />
+        <Route path="/admin/room" element={<Admin><Room /></Admin>} />
+        <Route path="/admin/booking" element={<Admin><Booking /></Admin>} />
         <Route path="/admin/event" element={<Admin><Event /></Admin>} />
         <Route path="/admin/scanner" element={<Admin><Scanner /></Admin>} />
         <Route path="/admin/user" element={<Admin><User /></Admin>} />
         <Route path="/event-stats/:eventId" element={<Admin><EventStats /></Admin>} />
         <Route path="/admin/subscriber" element={<Admin><Subscriber /></Admin>} />
+        <Route path="/admin/history" element={<Admin><History /></Admin>} />
 
 
         {/* </Routes> */}

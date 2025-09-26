@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { FaQrcode, FaTimes, FaTrash } from 'react-icons/fa';
+import { FaQrcode, FaTimes, FaTrash, FaCamera } from 'react-icons/fa';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -14,11 +14,33 @@ const Scanner = () => {
   const [result, setResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [codeReader, setCodeReader] = useState(null);
+  const [checkInQuantity, setCheckInQuantity] = useState(1);
+  const [videoDevices, setVideoDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
 
-  // Initialize ZXing code reader
+  // Initialize ZXing code reader and get video devices
   useEffect(() => {
     const reader = new BrowserQRCodeReader();
     setCodeReader(reader);
+
+    // Get available video devices
+    const getDevices = async () => {
+      try {
+        const devices = await reader.getVideoInputDevices();
+        setVideoDevices(devices);
+        // Prefer back camera by default
+        const backCamera = devices.find(device => 
+          device.label.toLowerCase().includes('back') || 
+          device.label.toLowerCase().includes('rear') ||
+          !device.label.toLowerCase().includes('front')
+        ) || devices[0];
+        setSelectedDeviceId(backCamera?.deviceId || '');
+      } catch (err) {
+        console.error('Error getting video devices:', err);
+      }
+    };
+    getDevices();
+
     return () => {
       reader.reset();
     };
@@ -26,19 +48,18 @@ const Scanner = () => {
 
   // Function to start QR code scanning
   const startScanning = async () => {
-    if (!codeReader) return;
+    if (!codeReader || !selectedDeviceId) return;
 
     setIsScanning(true);
     setError(null);
 
     try {
-      const videoInputDevices = await codeReader.getVideoInputDevices();
-      if (videoInputDevices.length === 0) {
+      if (videoDevices.length === 0) {
         throw new Error('No camera devices found');
       }
 
       const result = await codeReader.decodeFromInputVideoDevice(
-        videoInputDevices[0].deviceId,
+        selectedDeviceId,
         'qr-video'
       );
       console.log('QR code detected:', result.getText());
@@ -56,6 +77,14 @@ const Scanner = () => {
     }
   };
 
+  // Function to switch camera
+  const switchCamera = () => {
+    if (videoDevices.length < 2) return;
+    const currentIndex = videoDevices.findIndex(device => device.deviceId === selectedDeviceId);
+    const nextIndex = (currentIndex + 1) % videoDevices.length;
+    setSelectedDeviceId(videoDevices[nextIndex].deviceId);
+  };
+
   // Function to stop scanning
   const stopScanning = () => {
     if (codeReader) {
@@ -69,6 +98,7 @@ const Scanner = () => {
     setTransactionRef('');
     setResult(null);
     setError(null);
+    setCheckInQuantity(1);
   };
 
   // Function to validate QR code
@@ -88,7 +118,7 @@ const Scanner = () => {
       if (token) headers['Authorization'] = `Bearer ${token}`;
       else throw new Error('No authentication token found. Please log in.');
 
-      const response = await axios.get(`${API_URL}/purchases/crypt/${qrCode}`, {
+      const response = await axios.get(`${API_URL}/api/purchases/crypt/${qrCode}`, {
         headers,
         withCredentials: true,
       });
@@ -105,12 +135,13 @@ const Scanner = () => {
           ticket_type: purchaseData.ticket_type || 'N/A',
           quantity: parseInt(purchaseData.quantity) || 0,
           checked_in_quantity: parseInt(purchaseData.checked_in_quantity) || 0,
-          remaining: parseInt(purchaseData.remaining) || parseInt(purchaseData.quantity) || 0,
+          remaining: parseInt(purchaseData.quantity) - parseInt(purchaseData.checked_in_quantity) || 0,
           checked_in_by: purchaseData.checked_in_by || 'N/A',
           used: purchaseData.used || '0',
           checked_in_at: purchaseData.checked_in_at || null,
           event: purchaseData.event || { name: 'N/A' },
         });
+        setCheckInQuantity(1);
         toast.success('QR code validated successfully', { id: toastId });
       } else {
         throw new Error('Unexpected response status');
@@ -153,7 +184,7 @@ const Scanner = () => {
       if (token) headers['Authorization'] = `Bearer ${token}`;
       else throw new Error('No authentication token found. Please log in.');
 
-      const response = await axios.get(`${API_URL}/purchases/ref/${transactionRef}`, {
+      const response = await axios.get(`${API_URL}/api/purchases/ref/${transactionRef}`, {
         headers,
         withCredentials: true,
       });
@@ -170,12 +201,13 @@ const Scanner = () => {
           ticket_type: purchaseData.ticket_type || 'N/A',
           quantity: parseInt(purchaseData.quantity) || 0,
           checked_in_quantity: parseInt(purchaseData.checked_in_quantity) || 0,
-          remaining: parseInt(purchaseData.remaining) || parseInt(purchaseData.quantity) || 0,
+          remaining: parseInt(purchaseData.quantity) - parseInt(purchaseData.checked_in_quantity) || 0,
           checked_in_by: purchaseData.checked_in_by || 'N/A',
           used: purchaseData.used || '0',
           checked_in_at: purchaseData.checked_in_at || null,
           event: purchaseData.event || { name: 'N/A' },
         });
+        setCheckInQuantity(1);
         toast.success('Transaction reference validated successfully', { id: toastId });
       } else {
         throw new Error('Unexpected response status');
@@ -203,6 +235,12 @@ const Scanner = () => {
       return;
     }
 
+    if (checkInQuantity < 1 || checkInQuantity > result.remaining) {
+      setError('Invalid check-in quantity');
+      toast.error('Invalid check-in quantity');
+      return;
+    }
+
     const toastId = toast.loading('Checking in...');
     setLoading(true);
     setError(null);
@@ -217,17 +255,19 @@ const Scanner = () => {
       if (token) headers['Authorization'] = `Bearer ${token}`;
       else throw new Error('No authentication token found. Please log in.');
 
-      const response = await axios.post(`${API_URL}/purchases/${result.id}/checkin`, {}, {
-        headers,
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${API_URL}/api/purchases/${result.id}/checkin`,
+        { quantity: checkInQuantity },
+        { headers, withCredentials: true }
+      );
 
       console.log('Check-in response:', JSON.stringify(response.data, null, 2));
 
       if (response.status === 200) {
         const purchaseData = response.data.data || response.data.purchase || response.data;
-        setResult(null); // Clear purchase details after successful check-in
-        setTransactionRef(''); // Clear the transaction reference input
+        setResult(null);
+        setTransactionRef('');
+        setCheckInQuantity(1);
         toast.success(response.data.message || 'Ticket checked in successfully', { id: toastId });
       } else {
         throw new Error('Unexpected response status');
@@ -260,17 +300,17 @@ const Scanner = () => {
       document.body.style.overflow = 'unset';
       if (codeReader) codeReader.reset();
     };
-  }, [isScanning, codeReader]);
+  }, [isScanning, codeReader, selectedDeviceId]);
 
   return (
     <div className="min-h-screen bg-trdClr/15 py-8 md:py-12 w-full">
-      <div className="w-[90%]  mx-auto">
+      <div className="w-[90%] mx-auto">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
             Verify Ticket
           </h1>
-          <p className="text-sm md:text-base lg:text-lg text-gray-600  mx-auto">
+          <p className="text-sm md:text-base lg:text-lg text-gray-600 mx-auto">
             Scan a QR code or enter a transaction reference to check in.
           </p>
         </div>
@@ -357,13 +397,32 @@ const Scanner = () => {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={handleCheckIn}
-                  className="w-full px-3 md:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base lg:text-lg"
-                  disabled={loading || result.remaining === 0}
-                >
-                  Check In
-                </button>
+                {result.remaining > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4">
+                      <label className="text-sm md:text-base lg:text-lg font-medium text-gray-600">
+                        Check-in Quantity:
+                      </label>
+                      <select
+                        value={checkInQuantity}
+                        onChange={(e) => setCheckInQuantity(parseInt(e.target.value))}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pryClr focus:border-pryClr text-sm md:text-base lg:text-lg"
+                        disabled={loading}
+                      >
+                        {[...Array(result.remaining + 1).keys()].slice(1).map(num => (
+                          <option key={num} value={num}>{num}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      onClick={handleCheckIn}
+                      className="w-full px-3 md:px-4 py-2 bg-pryClr text-white rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base lg:text-lg"
+                      disabled={loading || result.remaining === 0}
+                    >
+                      Check In {checkInQuantity} Ticket{checkInQuantity > 1 ? 's' : ''}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -375,12 +434,23 @@ const Scanner = () => {
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-[95vw] md:max-w-[90vw] lg:max-w-lg p-1 md:p-2 lg:p-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-base md:text-lg lg:text-xl font-bold text-gray-900">Scan QR Code</h3>
-                <button
-                  onClick={stopScanning}
-                  className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full transition-colors"
-                >
-                  <FaTimes className="text-base md:text-lg lg:text-xl" />
-                </button>
+                <div className="flex space-x-2">
+                  {videoDevices.length > 1 && (
+                    <button
+                      onClick={switchCamera}
+                      className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full transition-colors"
+                      title="Switch Camera"
+                    >
+                      <FaCamera className="text-base md:text-lg lg:text-xl" />
+                    </button>
+                  )}
+                  <button
+                    onClick={stopScanning}
+                    className="text-gray-500 hover:text-gray-700 p-1 md:p-2 rounded-full transition-colors"
+                  >
+                    <FaTimes className="text-base md:text-lg lg:text-xl" />
+                  </button>
+                </div>
               </div>
               <div className="relative aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
                 <video id="qr-video" style={{ width: '100%', height: '100%' }}></video>

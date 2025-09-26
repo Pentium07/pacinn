@@ -49,7 +49,7 @@ const Event = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/events`, {
+      const response = await axios.get(`${API_URL}/api/events`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -85,7 +85,7 @@ const Event = () => {
   };
 
   // Fetch transaction history from API
-  const fetchTransactions = async (pageUrl = `${API_URL}/transactions?search=doeer`) => {
+  const fetchTransactions = async (pageUrl = `${API_URL}/api/transactions?search=doeer`) => {
     const toastId = toast.loading('Loading transaction history...');
     setTransactionLoading(true);
     setTransactionError(null);
@@ -147,7 +147,7 @@ const Event = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/events/${id}`, {
+      const response = await axios.get(`${API_URL}/api/events/${id}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -254,14 +254,14 @@ const Event = () => {
         };
 
         if (editingEvent) {
-          response = await axios.put(`${API_URL}/events/${editingEvent.id}`, payload, {
+          response = await axios.put(`${API_URL}/api/events/${editingEvent.id}`, payload, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
             },
           });
         } else {
-          response = await axios.post(`${API_URL}/events`, payload, {
+          response = await axios.post(`${API_URL}/api/events`, payload, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
@@ -278,14 +278,14 @@ const Event = () => {
         formDataToSend.append('tickets', JSON.stringify(tickets));
 
         if (editingEvent) {
-          response = await axios.post(`${API_URL}/events/${editingEvent.id}?_method=PUT`, formDataToSend, {
+          response = await axios.post(`${API_URL}/api/events/${editingEvent.id}?_method=PUT`, formDataToSend, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'multipart/form-data',
             },
           });
         } else {
-          response = await axios.post(`${API_URL}/events`, formDataToSend, {
+          response = await axios.post(`${API_URL}/api/events`, formDataToSend, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'multipart/form-data',
@@ -354,7 +354,7 @@ const Event = () => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`${API_URL}/events/${id}`, {
+      const response = await axios.delete(`${API_URL}/api/events/${id}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -384,7 +384,7 @@ const Event = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${API_URL}/events/${id}/${endpoint}`, {}, {
+      const response = await axios.put(`${API_URL}/api/events/${id}/${endpoint}`, {}, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -436,7 +436,7 @@ const Event = () => {
 
   return (
     <div className="min-h-screen bg-pryClr/5 p-8">
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="w-full  mx-auto">
         {/* Header */}
         <div className="mb-6 md:mb-8">
           <h1 className="text-xl md:text-2xl font-bold text-tetClr">
@@ -572,67 +572,7 @@ const Event = () => {
           </div>
         </div>
 
-        {/* Transaction History Section */}
-        <div>
-          <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Transaction History</h2>
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              {transactionLoading ? (
-                <div className="p-3 md:p-4 text-center text-gray-600 text-sm md:text-base">Loading transactions...</div>
-              ) : transactionError ? (
-                <div className="p-3 md:p-4 text-center text-gray-600 text-sm md:text-base">{transactionError}</div>
-              ) : transactionHistory.length === 0 ? (
-                <div className="p-3 md:p-4 text-center text-gray-600 text-sm md:text-base">No transactions found</div>
-              ) : (
-                <>
-                  <table className="w-full text-sm md:text-base text-left text-gray-700 min-w-[600px]">
-                    <thead className="bg-tetClr/20 text-gray-800">
-                      <tr>
-                        <th className="px-4 md:px-6 py-3 md:py-4 font-semibold">Name</th>
-                        <th className="px-4 md:px-6 py-3 md:py-4 font-semibold">Email</th>
-                        <th className="px-4 md:px-6 py-3 md:py-4 font-semibold">Phone</th>
-                        <th className="px-4 md:px-6 py-3 md:py-4 font-semibold">Event</th>
-                        <th className="px-4 md:px-6 py-3 md:py-4 font-semibold">Tickets</th>
-                        <th className="px-4 md:px-6 py-3 md:py-4 font-semibold">Total (₦)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactionHistory.map((transaction) => (
-                        <tr key={transaction.id} className="border-b border-gray-200 hover:bg-tetClr/20 transition-colors duration-200">
-                          <td className="px-4 md:px-6 py-3 md:py-4 font-medium text-gray-900">{transaction.name}</td>
-                          <td className="px-4 md:px-6 py-3 md:py-4 text-gray-600">{transaction.email}</td>
-                          <td className="px-4 md:px-6 py-3 md:py-4 text-gray-600">{transaction.phone}</td>
-                          <td className="px-4 md:px-6 py-3 md:py-4 font-medium text-tetClr">{transaction.eventName}</td>
-                          <td className="px-4 md:px-6 py-3 md:py-4">{transaction.tickets}</td>
-                          <td className="px-4 md:px-6 py-3 md:py-4 font-semibold text-tetClr">₦{transaction.totalPrice.toLocaleString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {/* Pagination Controls */}
-                  <div className="p-3 md:p-4 flex justify-center items-center gap-2">
-                    {pagination.links.map((link, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handlePaginationClick(link.url)}
-                        disabled={!link.url || link.active}
-                        className={`px-2 md:px-3 py-1 md:py-2 rounded-lg text-sm md:text-base font-medium transition-all duration-200 ${
-                          link.active
-                            ? 'bg-tetClr text-white'
-                            : link.url
-                            ? 'bg-gray-200 text-gray-700 hover:bg-tetClr hover:text-white'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        {link.label.replace('&laquo;', '«').replace('&raquo;', '»')}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+    
 
         {/* Add/Edit Event Modal */}
         {showModal && (

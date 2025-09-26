@@ -33,7 +33,7 @@ const Ticket = () => {
 
     const fetchPage = async (page = 1, accumulatedEvents = []) => {
       try {
-        const response = await axios.get(`${API_URL}/events/latest?page=${page}&t=${Date.now()}`, {
+        const response = await axios.get(`${API_URL}/api/events/latest?page=${page}&t=${Date.now()}`, {
           headers: { 'Content-Type': 'application/json' },
           withCredentials: true,
         });
@@ -154,7 +154,7 @@ const Ticket = () => {
         localStorage.setItem('userEmail', values.email);
 
         const purchaseResponse = await axios.post(
-          `${API_URL}/events/${selectedEvent.id}/purchase`,
+          `${API_URL}/api/events/${selectedEvent.id}/purchase`,
           {
             full_name: values.full_name,
             email: values.email,
@@ -170,7 +170,7 @@ const Ticket = () => {
           localStorage.setItem('pendingPurchaseId', purchaseId);
 
           const paystackResponse = await axios.post(
-            `${API_URL}/purchases/${purchaseId}/paystack`,
+            `${API_URL}/api/purchases/${purchaseId}/paystack`,
             {
               amount: calculateTotal() * 100,
               email: values.email,

@@ -106,6 +106,17 @@ const handleLogout = async () => {
             </NavLink>
 
             <NavLink
+              to="/admin/room"
+              className={({ isActive }) =>
+                `${linkClass} ${isActive ? activeClass : 'text-white'}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaClipboardList className="text-base" />
+              <span className="font-medium">Rooms</span>
+            </NavLink>
+
+            <NavLink
               to="/admin/booking"
               className={({ isActive }) =>
                 `${linkClass} ${isActive ? activeClass : 'text-white'}`
@@ -156,6 +167,16 @@ const handleLogout = async () => {
             >
               <FaQrcode className="text-base" />
               <span className="font-medium">Subscriber</span>
+            </NavLink>
+            <NavLink
+              to="/admin/history"
+              className={({ isActive }) =>
+                `${linkClass} ${isActive ? activeClass : 'text-white'}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaQrcode className="text-base" />
+              <span className="font-medium">History</span>
             </NavLink>
           </nav>
 

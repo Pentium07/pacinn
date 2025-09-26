@@ -1,290 +1,738 @@
 import React, { useState, useEffect } from 'react';
-import { FaBed, FaShower, FaRulerCombined, FaUser, FaPhone, FaEnvelope, FaCalendarAlt, FaMoneyBillWave, FaTimes, FaStar, FaWifi, FaCoffee, FaTv, FaSnowflake, FaParking } from 'react-icons/fa';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { MdHotelClass } from "react-icons/md";
+import { FaBed, FaShower, FaRulerCombined, FaUser, FaPhone, FaEnvelope, FaCalendarAlt, FaTimes, FaStar, FaWifi, FaCoffee, FaTv, FaSnowflake, FaParking, FaSearch, FaFilter, FaComment } from 'react-icons/fa';
+
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+const STORAGE_BASE_URL = import.meta.env.VITE_STORAGE_BASE_URL;
 
 const Bookings = () => {
-  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [apartments, setApartments] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [bookingType, setBookingType] = useState(null);
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [specialRequests, setSpecialRequests] = useState('');
+  const [totalGuests, setTotalGuests] = useState(1);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
+  // Default fallback image
+  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
 
-    useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location]);
-  
-  // Prevent background scrolling when modal is open
   useEffect(() => {
-    if (selectedRoom) {
+    console.log('Bookings component mounted');
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Improved scroll prevention with better cleanup
+  useEffect(() => {
+    const handleScroll = (e) => {
+      if (showBookingModal) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    };
+
+    if (showBookingModal) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
+      
+      // Add touchmove prevention for mobile
+      document.addEventListener('touchmove', handleScroll, { passive: false });
     } else {
+      const scrollY = document.body.style.top;
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+      
+      document.removeEventListener('touchmove', handleScroll);
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      document.removeEventListener('touchmove', handleScroll);
     };
-  }, [selectedRoom]);
+  }, [showBookingModal]);
 
-  const rooms = [
-    {
-      id: 1,
-      name: "Luxury King Suite",
-      description: "Spacious suite with king bed, panoramic city views, and premium amenities.",
-      price: 5000,
-      image: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-
-    },
-    {
-      id: 2,
-      name: "Executive Ocean View",
-      description: "Elegant room with breathtaking ocean views and a private balcony.",
-      price: 7500,
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-
-    },
-    {
-      id: 3,
-      name: "Presidential Penthouse",
-      description: "The ultimate luxury experience with private terrace and personalized butler service.",
-      price: 15000,
-      image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-
-    },
-    {
-      id: 4,
-      name: "Deluxe Garden Room",
-      description: "Tranquil room opening to our curated gardens with a relaxing atmosphere.",
-      price: 4000,
-      image: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-   
-    },
-    {
-      id: 5,
-      name: "Family Connector Suite",
-      description: "Perfect for families with connecting rooms and child-friendly amenities.",
-      price: 9000,
-      image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-
-    },
-    {
-      id: 6,
-      name: "Business Class Room",
-      description: "Designed for the modern traveler with ergonomic workspace and high-speed internet.",
-      price: 4500,
-      image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-
+  // Fetch available apartments
+  const fetchApartments = async (filters = {}) => {
+    console.log('Fetching apartments with filters:', filters);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({
+        available: true,
+        ...filters
+      });
+      const response = await axios.get(`${API_URL}/api/public/apartments?${params}`);
+      const fetchedApartments = response.data.data?.data || response.data.data || response.data || [];
+      setApartments(fetchedApartments);
+    } catch (err) {
+      console.error('Error fetching apartments:', err);
+      setError(err.response?.data?.message || 'Error fetching apartments');
+      toast.error('Failed to load apartments');
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
 
+  // Fetch available rooms
+  const fetchRooms = async (filters = {}) => {
+    console.log('Fetching rooms with filters:', filters);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({
+        available: true,
+        ...filters
+      });
+      const response = await axios.get(`${API_URL}/api/public/rooms?${params}`);
+      const fetchedRooms = response.data.data?.data || response.data.data || response.data || [];
+      setRooms(fetchedRooms);
+    } catch (err) {
+      console.error('Error fetching rooms:', err);
+      setError(err.response?.data?.message || 'Error fetching rooms');
+      toast.error('Failed to load rooms');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Search apartments by filters
+  const searchApartments = () => {
+    const filters = {};
+    if (minPrice) filters.min_price = minPrice;
+    if (maxPrice) filters.max_price = maxPrice;
+    fetchApartments(filters);
+  };
+
+  // Filter rooms
+  const filterRooms = () => {
+    const filters = {};
+    if (minPrice) filters.min_price = minPrice;
+    if (maxPrice) filters.max_price = maxPrice;
+    fetchRooms(filters);
+  };
+
+  // Clear filters
+  const clearFilters = () => {
+    setMinPrice('');
+    setMaxPrice('');
+    fetchApartments();
+    fetchRooms();
+  };
+
+  // Handle booking initiation
+  const handleBook = (item, type) => {
+    setSelectedItem(item);
+    setBookingType(type);
+    setTotalGuests(item.max_guests || 1);
+    setShowBookingModal(true);
+  };
+
+  // Submit booking
+  const submitBooking = async () => {
+    if (isBooking) {
+      return null;
+    }
+    if (!name || !phone || !email || !checkInDate || !checkOutDate || !totalGuests) {
+      toast.error('Please fill in all required fields');
+      return null;
+    }
+    setIsBooking(true);
+    
+    try {
+      const payload = bookingType === 'apartment' ? {
+        apartment_id: selectedItem.id,
+        guest_name: name,
+        guest_email: email,
+        guest_phone: phone,
+        total_guests: totalGuests,
+        check_in_date: checkInDate,
+        check_out_date: checkOutDate,
+        booking_type: 'apartment',
+        special_requests: specialRequests
+      } : {
+        booking_type: 'room',
+        apartment_id: selectedItem.apartment_id,
+        room_ids: [selectedItem.id],
+        guest_name: name,
+        guest_email: email,
+        guest_phone: phone,
+        total_guests: totalGuests,
+        check_in_date: checkInDate,
+        check_out_date: checkOutDate,
+        special_requests: specialRequests,
+        room_guests: [totalGuests]
+      };
+
+      const response = await axios.post(`${API_URL}/api/public/bookings`, payload);
+      return response.data.data.id;
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create booking');
+      return null;
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  // Calculate total
   const calculateTotal = () => {
-    if (!checkInDate || !checkOutDate || !selectedRoom) return 0;
+    if (!checkInDate || !checkOutDate) {
+      return 0;
+    }
     
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
-    const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-    
-    return nights * selectedRoom.price;
-  };
-
-  const handleBook = (room) => {
-    setSelectedRoom(room);
-    setCheckInDate('');
-    setCheckOutDate('');
-    setName('');
-    setPhone('');
-    setEmail('');
-  };
-
-  const handleProceed = () => {
-    alert(`Booking confirmed for ${selectedRoom.name}! Total: ₹${calculateTotal()}`);
-    setSelectedRoom(null);
+    const nights = Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)));
+    const price = parseFloat(selectedItem?.price_per_night || 0);
+    return nights * price;
   };
 
   const totalNights = () => {
-    if (!checkInDate || !checkOutDate) return 0;
+    if (!checkInDate || !checkOutDate) {
+      return 0;
+    }
     
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
-    return Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+    return Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)));
   };
 
+  // Proceed to payment
+  const handleProceed = async () => {
+    if (!name || !phone || !email || !checkInDate || !checkOutDate || !totalGuests) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    setIsPaymentLoading(true);
+    
+    const bookingId = await submitBooking();
+    if (!bookingId) {
+      setIsPaymentLoading(false);
+      return;
+    }
+    
+    try {
+      const paymentPayload = {
+        amount: calculateTotal(),
+        payment_method: 'paystack'
+      };
+      const response = await axios.post(`${API_URL}/api/public/bookings/${bookingId}/payment`, paymentPayload);
+      
+      const { authorization_url } = response.data;
+      if (authorization_url) {
+        window.location.href = authorization_url;
+      } else {
+        toast.error('Failed to initialize payment');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to initialize payment');
+    } finally {
+      setIsPaymentLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    fetchApartments();
+    fetchRooms();
+  }, []);
+
+  // Icon mapping for amenities
+  const amenityIcons = {
+    WiFi: <FaWifi className="w-3 h-3" />,
+    'Air Conditioning': <FaSnowflake className="w-3 h-3" />,
+    Kitchen: <FaCoffee className="w-3 h-3" />,
+    Balcony: <FaRulerCombined className="w-3 h-3" />,
+    'City View': <FaStar className="w-3 h-3" />,
+    Parking: <FaParking className="w-3 h-3" />,
+    TV: <FaTv className="w-3 h-3" />,
+    Shower: <FaShower className="w-3 h-3" />,
+    'Queen Bed': <FaBed className="w-3 h-3" />,
+    'King Bed': <FaBed className="w-3 h-3" />
+  };
+
+  // Handle calendar icon click to trigger date picker
+  const handleCalendarClick = (inputId) => {
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.focus();
+      input.click();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-tetClr mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading accommodations...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Error: {error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-tetClr text-white px-6 py-2 rounded-lg hover:bg-tetClr/80 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-trdClr/15 py-12 w-full pt-26">
-      <div className="w-[90%] mx-auto">
+    <div className="min-h-screen bg-gray-100 pt-26 py-8">
+      <div className="container mx-auto w-[90%]">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Luxury Accommodations</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Discover our exquisite collection of rooms and suites, each designed to provide an unforgettable experience of comfort and luxury.
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Luxury Accommodations</h1>
+          <p className="text-gray-600 max-w-3xl mx-auto text-base md:text-lg">
+            Discover our exquisite collection of apartments and rooms, each designed to provide an unforgettable experience of comfort and luxury.
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {rooms.map(room => (
-            <div key={room.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-              <div className="relative">
-                <img 
-                  src={room.image} 
-                  alt={room.name}
-                  className="w-full h-56 object-cover"
-                />
-                <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-sm">
-                  ₹{room.price.toLocaleString('en-IN')}/night
+
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <FaSearch className="w-5 h-5" />
+            Search Rooms
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-base font-medium text-gray-700 mb-1">Min Price (₦)</label>
+              <input
+                type="number"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                placeholder="Min"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+              />
+            </div>
+            <div>
+              <label className="block text-base font-medium text-gray-700 mb-1">Max Price (₦)</label>
+              <input
+                type="number"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                placeholder="Max"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <button
+                onClick={filterRooms}
+                className="flex-1 bg-tetClr text-white py-3 px-4 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors flex items-center gap-2 justify-center"
+              >
+                <FaFilter className="w-4 h-4" />
+                Search
+              </button>
+              <button
+                onClick={clearFilters}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Rooms Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {rooms.length === 0 ? (
+            <div className="col-span-full text-center text-gray-600 py-8">
+              No rooms found.
+            </div>
+          ) : (
+            rooms.map((room) => (
+              <div key={room.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                <div className="relative">
+                  <img 
+                    src={Array.isArray(room.images) && room.images.length > 0 ? `${STORAGE_BASE_URL}/${room.images[0]}` : FALLBACK_IMAGE}
+                    alt={room.room_type}
+                    className="w-full h-48 md:h-56 object-cover"
+                  />
+                  <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
+                    ₦{parseFloat(room.price_per_night || 0).toLocaleString('en-NG')}
+                  </div>
+                  {room.is_available && (
+                    <div className="absolute top-4 left-4 bg-green-500 text-white py-1 px-3 rounded-full font-semibold text-base">
+                      Available
+                    </div>
+                  )}
+                </div>
+                
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{room.room_type}</h3>
+                  <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{room.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {Array.isArray(room.amenities) && room.amenities.slice(0, 4).map((amenity, index) => (
+                      <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
+                        {amenityIcons[amenity] || <FaBed className="w-3 h-3" />}
+                        {amenity}
+                      </span>
+                    ))}
+                    {Array.isArray(room.amenities) && room.amenities.length > 4 && (
+                      <span className="text-base text-gray-500">+{room.amenities.length - 4} more</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center text-gray-600 mb-4">
+                    <FaUser className="w-4 h-4 mr-2" />
+                    Up to {room.max_guests} guests
+                  </div>
+
+                  <button 
+                    onClick={() => handleBook(room, 'room')}
+                    disabled={isBooking}
+                    className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isBooking ? 'Booking...' : 'Book Now'}
+                  </button>
                 </div>
               </div>
-              
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{room.name}</h3>
-                <p className="text-gray-600 mb-4">{room.description}</p>
-                
-             
-                
-                <button 
-                  onClick={() => handleBook(room)}
-                  className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 shadow-md hover:shadow-lg"
-                >
-                  Book Now
-                </button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
+        
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <FaSearch className="w-5 h-5" />
+            Search Apartments
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-base font-medium text-gray-700 mb-1">Min Price (₦)</label>
+              <input
+                type="number"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                placeholder="Min"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+              />
+            </div>
+            <div>
+              <label className="block text-base font-medium text-gray-700 mb-1">Max Price (₦)</label>
+              <input
+                type="number"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                placeholder="Max"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <button
+                onClick={searchApartments}
+                className="flex-1 bg-tetClr text-white py-3 px-4 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors flex items-center gap-2 justify-center"
+              >
+                <FaFilter className="w-4 h-4" />
+                Search
+              </button>
+              <button
+                onClick={clearFilters}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Apartments Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {apartments.length === 0 ? (
+            <div className="col-span-full text-center text-gray-600 py-8">
+              No apartments found.
+            </div>
+          ) : (
+            apartments.map((apartment) => (
+              <div key={apartment.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                <div className="relative">
+                  <img 
+                    src={Array.isArray(apartment.images) && apartment.images.length > 0 ? `${STORAGE_BASE_URL}/${apartment.images[0]}` : FALLBACK_IMAGE}
+                    alt={apartment.name}
+                    className="w-full h-48 md:h-56 object-cover"
+                  />
+                  <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
+                    ₦{parseFloat(apartment.price_per_night || 0).toLocaleString('en-NG')}
+                  </div>
+                  {apartment.is_available && (
+                    <div className="absolute top-4 left-4 bg-green-500 text-white py-1 px-3 rounded-full font-semibold text-base">
+                      Available
+                    </div>
+                  )}
+                </div>
+                
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{apartment.name}</h3>
+                  <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{apartment.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {Array.isArray(apartment.amenities) && apartment.amenities.slice(0, 4).map((amenity, index) => (
+                      <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
+                        {amenityIcons[amenity] || <MdHotelClass className="w-3 h-3" />}
+                        {amenity}
+                      </span>
+                    ))}
+                    {Array.isArray(apartment.amenities) && apartment.amenities.length > 4 && (
+                      <span className="text-base text-gray-500">+{apartment.amenities.length - 4} more</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center text-gray-600 mb-4">
+                    <FaUser className="w-4 h-4 mr-2" />
+                    Up to {apartment.max_guests} guests
+                  </div>
+
+                  <button 
+                    onClick={() => handleBook(apartment, 'apartment')}
+                    disabled={isBooking}
+                    className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isBooking ? 'Booking...' : 'Book Now'}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Room Filters */}
+
       </div>
 
       {/* Booking Modal */}
-      {selectedRoom && (
-        <div className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8 overflow-hidden flex flex-col md:flex-row">
-            {/* Left side - Room image and details */}
-            <div className="md:w-2/5 bg-gradient-to-b from-amber-50 to-gray-100 p-6 flex flex-col">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">{selectedRoom.name}</h2>
-                <button 
-                  onClick={() => setSelectedRoom(null)}
-                  className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-colors"
-                >
-                  <FaTimes size={20} />
-                </button>
+      {showBookingModal && selectedItem && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex flex-col lg:flex-row">
+              {/* Left side - Item image and details */}
+              <div className="lg:w-2/5 bg-gradient-to-b from-gray-50 to-gray-100 p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
+                  </h2>
+                  <button 
+                    onClick={() => {
+                      setShowBookingModal(false);
+                      setSelectedItem(null);
+                      setBookingType(null);
+                      setName('');
+                      setEmail('');
+                      setPhone('');
+                      setCheckInDate('');
+                      setCheckOutDate('');
+                      setSpecialRequests('');
+                      setTotalGuests(1);
+                    }}
+                    className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-colors"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+                
+                <img 
+                  src={Array.isArray(selectedItem.images) && selectedItem.images.length > 0 ? `${STORAGE_BASE_URL}/${selectedItem.images[0]}` : FALLBACK_IMAGE}
+                  alt={bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
+                  className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
+                />
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-medium text-gray-700">Price per night</span>
+                    <span className="font-semibold text-tetClr">₦{parseFloat(selectedItem.price_per_night || 0).toLocaleString('en-NG')}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-medium text-gray-700">Max guests</span>
+                    <span className="font-semibold text-tetClr">Up to {selectedItem.max_guests}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.isArray(selectedItem.amenities) && selectedItem.amenities.map((amenity, index) => (
+                      <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
+                        {amenityIcons[amenity] || <FaBed className="w-3 h-3" />}
+                        {amenity}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
               
-              <img 
-                src={selectedRoom.image} 
-                alt={selectedRoom.name}
-                className="w-full h-full object-cover rounded-lg mb-4 shadow-md"
-              />
-              
-           
-             
-            </div>
-            
-            {/* Right side - Booking form */}
-            <div className="md:w-3/5 p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Complete Your Booking</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
+              {/* Right side - Booking form */}
+              <div className="lg:w-3/5 p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Complete Your Booking</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="relative">
+                    <label className="block text-base font-medium text-gray-700 mb-1">Check-in Date</label>
                     <input
+                      id="checkInDate"
                       type="date"
                       value={checkInDate}
                       onChange={(e) => setCheckInDate(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
                     />
-                    {/* <FaCalendarAlt className="absolute right-3 top-3 text-gray-400" /> */}
+                    <button
+                      type="button"
+                      onClick={() => handleCalendarClick('checkInDate')}
+                      className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
+                    >
+                    </button>
                   </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
+                  
                   <div className="relative">
+                    <label className="block text-base font-medium text-gray-700 mb-1">Check-out Date</label>
                     <input
+                      id="checkOutDate"
                       type="date"
                       value={checkOutDate}
                       onChange={(e) => setCheckOutDate(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      min={checkInDate || new Date().toISOString().split('T')[0]}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
                     />
-                    {/* <FaCalendarAlt className="absolute right-3 top-3 text-gray-400" /> */}
+                    <button
+                      type="button"
+                      onClick={() => handleCalendarClick('checkOutDate')}
+                      className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
+                    >
+                    </button>
                   </div>
                 </div>
-              </div>
-              
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                
+                <div className="space-y-4 mb-6">
                   <div className="relative">
+                    <label className="block text-base font-medium text-gray-700 mb-1">Full Name</label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Enter your full name"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
                     />
-                    <FaUser className="absolute right-3 top-3 text-gray-400" />
+                    <FaUser className="absolute right-3 top-10 text-gray-400" />
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4  ">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
+                      <label className="block text-base font-medium text-gray-700 mb-1">Phone Number</label>
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Enter your phone number"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
                       />
-                      <FaPhone className="absolute right-3 top-4 text-gray-400" />
+                      <FaPhone className="absolute right-3 top-10 text-gray-400" />
                     </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    
                     <div className="relative">
+                      <label className="block text-base font-medium text-gray-700 mb-1">Email Address</label>
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Enter your email address"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
                       />
-                      <FaEnvelope className="absolute right-3 top-4 text-gray-400" />
+                      <FaEnvelope className="absolute right-3 top-10 text-gray-400" />
                     </div>
                   </div>
+                  
+                  <div>
+                    <label className="block text-base font-medium text-gray-700 mb-1">Total Guests</label>
+                    <input
+                      type="number"
+                      value={totalGuests}
+                      onChange={(e) => setTotalGuests(Math.max(1, Math.min(selectedItem.max_guests, parseInt(e.target.value) || 1)))}
+                      min="1"
+                      max={selectedItem.max_guests}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                    />
+                  </div>
+                  
+                  <div className="relative">
+                    <label className="block text-base font-medium text-gray-700 mb-1">Special Requests</label>
+                    <textarea
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder="Enter any special requests"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                      rows="3"
+                    />
+                    <FaComment className="absolute right-3 top-10 text-gray-400" />
+                  </div>
                 </div>
+                
+                {checkInDate && checkOutDate && (
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">Booking Summary</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">₦{parseFloat(selectedItem.price_per_night || 0).toLocaleString('en-NG')} x {totalNights()} night(s)</span>
+                        <span className="font-semibold">₦{calculateTotal().toLocaleString('en-NG')}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                        <span className="text-lg font-bold text-gray-900">Total Amount:</span>
+                        <span className="text-lg font-bold text-tetClr">₦{calculateTotal().toLocaleString('en-NG')}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="relative">
+                  <button
+                    onClick={handleProceed}
+                    disabled={isBooking || !checkInDate || !checkOutDate || !name || !phone || !email || !totalGuests || isPaymentLoading}
+                    className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isPaymentLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      'Proceed to Payment'
+                    )}
+                  </button>
+                </div>
+                
+                <p className="text-base text-gray-500 text-center mt-4">
+                  By proceeding, you agree to our Terms of Service and Privacy Policy.
+                </p>
               </div>
-              
-              {checkInDate && checkOutDate && (
-                <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Booking Summary</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700">₹{selectedRoom.price.toLocaleString('en-IN')} x {totalNights()} night(s)</span>
-                      <span className="font-semibold">₹{(selectedRoom.price * totalNights()).toLocaleString('en-IN')}</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-amber-200">
-                      <span className="text-lg font-bold text-gray-900">Total Amount:</span>
-                      <span className="text-lg font-bold text-amber-700">₹{calculateTotal().toLocaleString('en-IN')}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <button
-                onClick={handleProceed}
-                disabled={!checkInDate || !checkOutDate || !name || !phone || !email}
-                className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
-              >
-                Proceed to Payment
-              </button>
-              
-              <p className="text-xs text-gray-500 text-center mt-4">
-                By proceeding, you agree to our Terms of Service and Privacy Policy.
-              </p>
             </div>
           </div>
         </div>

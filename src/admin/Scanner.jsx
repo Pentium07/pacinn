@@ -28,12 +28,12 @@ const Scanner = () => {
       try {
         const devices = await reader.getVideoInputDevices();
         setVideoDevices(devices);
-        // Prefer back camera by default
+        // Prioritize back camera by checking for common labels
         const backCamera = devices.find(device => 
           device.label.toLowerCase().includes('back') || 
-          device.label.toLowerCase().includes('rear') ||
-          !device.label.toLowerCase().includes('front')
-        ) || devices[0];
+          device.label.toLowerCase().includes('rear') || 
+          device.label.toLowerCase().includes('environment')
+        ) || devices[0]; // Fallback to first device if no back camera found
         setSelectedDeviceId(backCamera?.deviceId || '');
       } catch (err) {
         console.error('Error getting video devices:', err);
@@ -80,9 +80,14 @@ const Scanner = () => {
   // Function to switch camera
   const switchCamera = () => {
     if (videoDevices.length < 2) return;
+    if (codeReader) codeReader.reset(); // Reset scanner before switching
     const currentIndex = videoDevices.findIndex(device => device.deviceId === selectedDeviceId);
     const nextIndex = (currentIndex + 1) % videoDevices.length;
     setSelectedDeviceId(videoDevices[nextIndex].deviceId);
+    if (isScanning) {
+      // Restart scanning with the new camera
+      startScanning();
+    }
   };
 
   // Function to stop scanning

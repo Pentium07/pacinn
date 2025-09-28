@@ -258,11 +258,12 @@ const Ticket = () => {
     <div className="w-full flex flex-col">
       {/* Hero Section */}
       <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
-        <img
-          src={assets.bg}
-          alt="Events Background"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+      <img
+  src={assets.pic11}
+  alt="Events Background"
+  className="absolute inset-0 w-full h-full object-cover object-top"
+/>
+
         <div className="absolute inset-0 bg-pryClr/70 bg-gradient-to-r from-pryClr via-pryClr/70 to-pryClr/20"></div>
         <div className="relative z-10 w-[90%] mx-auto text-center animate-fadeIn flex flex-col gap-4 md:gap-8 mt-8">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white">

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { MdHotelClass } from "react-icons/md";
 import { FaBed, FaShower, FaRulerCombined, FaUser, FaPhone, FaEnvelope, FaCalendarAlt, FaTimes, FaStar, FaWifi, FaCoffee, FaTv, FaSnowflake, FaParking, FaSearch, FaFilter, FaComment } from 'react-icons/fa';
-import assets from '../assets/assets';
+import assets from '../assets/assests';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 const STORAGE_BASE_URL = import.meta.env.VITE_STORAGE_BASE_URL;

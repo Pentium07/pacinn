@@ -15,7 +15,7 @@ const Contact = () => {
       {/* Hero Section */}
       <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
         <img
-          src={assets.bg}
+          src={assets.pic12}
           alt="Contact Background"
           className="absolute inset-0 w-full h-full object-cover"
         />

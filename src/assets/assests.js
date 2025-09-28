@@ -10,6 +10,8 @@ import pic7 from "./pic7.jpg";
 import pic8 from "./pic8.jpg";
 import pic9 from "./pic9.jpg";
 import pic10 from "./pic10.jpg";
+import pic11 from "./pic11.jpg";
+import pic12 from "./pic12.jpeg";
 
 
 const assets = {
@@ -25,6 +27,8 @@ const assets = {
     pic8,
     pic9,
     pic10,
+    pic11,
+    pic12,
 }
     
 export default assets;

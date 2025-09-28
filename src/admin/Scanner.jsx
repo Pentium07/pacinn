@@ -436,7 +436,7 @@ const Scanner = () => {
         {/* QR Scanner Modal */}
         {isScanning && (
           <div className="fixed inset-0 bg-black/90 flex items-start justify-center p-1 md:p-2 lg:p-4 pt-8 z-50 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[95vw] md:max-w-[90vw] lg:max-w-lg p-1 md:p-2 lg:p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full  p-1 md:p-2 lg:p-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-base md:text-lg lg:text-xl font-bold text-gray-900">Scan QR Code</h3>
                 <div className="flex space-x-2">
@@ -457,8 +457,8 @@ const Scanner = () => {
                   </button>
                 </div>
               </div>
-              <div className="relative aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
-                <video id="qr-video" style={{ width: '100%', height: '100%' }}></video>
+              <div className="relative aspect-[1/3] bg-gray-200 rounded-lg overflow-hidden">
+                <video id="qr-video" style={{ width: '100%', height: '80vh' }}></video>
               </div>
             </div>
           </div>

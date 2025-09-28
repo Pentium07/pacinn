@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { MdHotelClass } from "react-icons/md";
 import { FaBed, FaShower, FaRulerCombined, FaUser, FaPhone, FaEnvelope, FaCalendarAlt, FaTimes, FaStar, FaWifi, FaCoffee, FaTv, FaSnowflake, FaParking, FaSearch, FaFilter, FaComment } from 'react-icons/fa';
-import assets from '../assets/assests';
+import assets from '../assets/assets';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 const STORAGE_BASE_URL = import.meta.env.VITE_STORAGE_BASE_URL;
@@ -34,44 +34,26 @@ const Bookings = () => {
   }, []);
 
   useEffect(() => {
-    const handleScroll = (e) => {
-      if (showBookingModal) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-    };
-
     if (showBookingModal) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
+      // Store current scroll position
+      const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
-      document.body.style.top = `-${window.scrollY}px`;
-      
-      document.addEventListener('touchmove', handleScroll, { passive: false });
+      document.body.style.top = `-${scrollY}px`;
     } else {
+      // Restore scroll position
       const scrollY = document.body.style.top;
-      document.body.style.overflow = 'unset';
-      document.documentElement.style.overflow = 'unset';
       document.body.style.position = '';
       document.body.style.width = '';
       document.body.style.top = '';
-      
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
-      
-      document.removeEventListener('touchmove', handleScroll);
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
-      document.documentElement.style.overflow = 'unset';
+      // Cleanup on component unmount
       document.body.style.position = '';
       document.body.style.width = '';
       document.body.style.top = '';
-      document.removeEventListener('touchmove', handleScroll);
     };
   }, [showBookingModal]);
 
@@ -548,41 +530,44 @@ const Bookings = () => {
         </div>
 
         {showBookingModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="flex flex-col lg:flex-row">
-                <div className="lg:w-2/5 bg-gradient-to-b from-gray-50 to-gray-100 p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
-                    </h2>
-                    <button 
-                      onClick={() => {
-                        setShowBookingModal(false);
-                        setSelectedItem(null);
-                        setBookingType(null);
-                        setName('');
-                        setEmail('');
-                        setPhone('');
-                        setCheckInDate('');
-                        setCheckOutDate('');
-                        setSpecialRequests('');
-                        totalGuests(1);
-                      }}
-                      className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                      <FaTimes size={20} />
-                    </button>
-                  </div>
-                  
+          <div className="fixed inset-0 bg-black/80 flex items-start justify-center p-4 sm:p-6 z-50 overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl sm:max-w-3xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto flex flex-col my-4 sm:my-8">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
+                </h2>
+                <button 
+                  onClick={() => {
+                    setShowBookingModal(false);
+                    setSelectedItem(null);
+                    setBookingType(null);
+                    setName('');
+                    setEmail('');
+                    setPhone('');
+                    setCheckInDate('');
+                    setCheckOutDate('');
+                    setSpecialRequests('');
+                    setTotalGuests(1);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-colors"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+              
+              {/* Modal Content */}
+              <div className="flex flex-col p-4 sm:p-6 space-y-6">
+                {/* Image and Details */}
+                <div className="space-y-4">
                   {Array.isArray(selectedItem.images) && selectedItem.images.length > 0 ? (
                     <img 
                       src={`${STORAGE_BASE_URL}/${selectedItem.images[0].replace(/^\/storage\//, "")}`}
                       alt={bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
-                      className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
+                      className="w-full h-48 sm:h-64 object-cover rounded-lg shadow-md"
                     />
                   ) : (
-                    <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg mb-4 shadow-md">
+                    <div className="w-full h-48 sm:h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg shadow-md">
                       No Image
                     </div>
                   )}
@@ -606,11 +591,12 @@ const Bookings = () => {
                     </div>
                   </div>
                 </div>
-                
-                <div className="lg:w-3/5 p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6">Complete Your Booking</h3>
+
+                {/* Booking Form */}
+                <div className="space-y-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Complete Your Booking</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="relative">
                       <label className="block text-base font-medium text-gray-700 mb-1">Check-in Date</label>
                       <input
@@ -626,6 +612,7 @@ const Bookings = () => {
                         onClick={() => handleCalendarClick('checkInDate')}
                         className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
                       >
+                        <FaCalendarAlt />
                       </button>
                     </div>
                     
@@ -644,11 +631,12 @@ const Bookings = () => {
                         onClick={() => handleCalendarClick('checkOutDate')}
                         className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
                       >
+                        <FaCalendarAlt />
                       </button>
                     </div>
                   </div>
                   
-                  <div className="space-y-4 mb-6">
+                  <div className="space-y-4">
                     <div className="relative">
                       <label className="block text-base font-medium text-gray-700 mb-1">Full Name</label>
                       <input
@@ -661,7 +649,7 @@ const Bookings = () => {
                       <FaUser className="absolute right-3 top-10 text-gray-400" />
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="relative">
                         <label className="block text-base font-medium text-gray-700 mb-1">Phone Number</label>
                         <input
@@ -701,7 +689,7 @@ const Bookings = () => {
                   </div>
                   
                   {checkInDate && checkOutDate && (
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                       <h4 className="font-semibold text-gray-900 mb-3">Booking Summary</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">

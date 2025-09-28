@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { MdHotelClass } from "react-icons/md";
 import { FaBed, FaShower, FaRulerCombined, FaUser, FaPhone, FaEnvelope, FaCalendarAlt, FaTimes, FaStar, FaWifi, FaCoffee, FaTv, FaSnowflake, FaParking, FaSearch, FaFilter, FaComment } from 'react-icons/fa';
+import assets from '../assets/assests';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 const STORAGE_BASE_URL = import.meta.env.VITE_STORAGE_BASE_URL;
@@ -32,7 +33,6 @@ const Bookings = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Improved scroll prevention with better cleanup
   useEffect(() => {
     const handleScroll = (e) => {
       if (showBookingModal) {
@@ -49,7 +49,6 @@ const Bookings = () => {
       document.body.style.width = '100%';
       document.body.style.top = `-${window.scrollY}px`;
       
-      // Add touchmove prevention for mobile
       document.addEventListener('touchmove', handleScroll, { passive: false });
     } else {
       const scrollY = document.body.style.top;
@@ -76,7 +75,6 @@ const Bookings = () => {
     };
   }, [showBookingModal]);
 
-  // Fetch available apartments
   const fetchApartments = async (filters = {}) => {
     console.log('Fetching apartments with filters:', filters);
     setIsLoading(true);
@@ -98,7 +96,6 @@ const Bookings = () => {
     }
   };
 
-  // Fetch available rooms
   const fetchRooms = async (filters = {}) => {
     console.log('Fetching rooms with filters:', filters);
     setIsLoading(true);
@@ -120,7 +117,6 @@ const Bookings = () => {
     }
   };
 
-  // Search apartments by filters
   const searchApartments = () => {
     const filters = {};
     if (minPrice) filters.min_price = minPrice;
@@ -128,7 +124,6 @@ const Bookings = () => {
     fetchApartments(filters);
   };
 
-  // Filter rooms
   const filterRooms = () => {
     const filters = {};
     if (minPrice) filters.min_price = minPrice;
@@ -136,7 +131,6 @@ const Bookings = () => {
     fetchRooms(filters);
   };
 
-  // Clear filters
   const clearFilters = () => {
     setMinPrice('');
     setMaxPrice('');
@@ -144,7 +138,6 @@ const Bookings = () => {
     fetchRooms();
   };
 
-  // Handle booking initiation
   const handleBook = (item, type) => {
     setSelectedItem(item);
     setBookingType(type);
@@ -152,7 +145,6 @@ const Bookings = () => {
     setShowBookingModal(true);
   };
 
-  // Submit booking
   const submitBooking = async () => {
     if (isBooking) {
       return null;
@@ -198,7 +190,6 @@ const Bookings = () => {
     }
   };
 
-  // Calculate total
   const calculateTotal = () => {
     if (!checkInDate || !checkOutDate) {
       return 0;
@@ -221,7 +212,6 @@ const Bookings = () => {
     return Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)));
   };
 
-  // Proceed to payment
   const handleProceed = async () => {
     if (!name || !phone || !email || !checkInDate || !checkOutDate || !totalGuests) {
       toast.error('Please fill in all required fields');
@@ -261,7 +251,6 @@ const Bookings = () => {
     fetchRooms();
   }, []);
 
-  // Icon mapping for amenities
   const amenityIcons = {
     WiFi: <FaWifi className="w-3 h-3" />,
     'Air Conditioning': <FaSnowflake className="w-3 h-3" />,
@@ -275,7 +264,6 @@ const Bookings = () => {
     'King Bed': <FaBed className="w-3 h-3" />
   };
 
-  // Handle calendar icon click to trigger date picker
   const handleCalendarClick = (inputId) => {
     const input = document.getElementById(inputId);
     if (input) {
@@ -312,432 +300,448 @@ const Bookings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-26 py-8">
-      <div className="container mx-auto w-[90%]">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Luxury Accommodations</h1>
-          <p className="text-gray-600 max-w-3xl mx-auto text-base md:text-lg">
-            Discover our exquisite collection of apartments and rooms, each designed to provide an unforgettable experience of comfort and luxury.
+    <div className="w-full flex flex-col">
+      {/* Hero Section */}
+      <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
+        <img
+          src={assets.bg}
+          alt="Bookings Background"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-pryClr/70 bg-gradient-to-r from-pryClr via-pryClr/70 to-pryClr/20"></div>
+        <div className="relative z-10 w-[90%] mx-auto text-center animate-fadeIn flex flex-col gap-4 md:gap-8 mt-8">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white">
+            Book Your <span className="text-secClr">Stay</span>
+          </h1>
+          <p className="text-base md:text-lg lg:text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
+            Reserve your luxury apartment or room at Pac Inn Hotel for a comfortable and memorable experience.
           </p>
         </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <FaSearch className="w-5 h-5" />
-            Search Rooms
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-base font-medium text-gray-700 mb-1">Min Price (₦)</label>
-              <input
-                type="number"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                placeholder="Min"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-              />
-            </div>
-            <div>
-              <label className="block text-base font-medium text-gray-700 mb-1">Max Price (₦)</label>
-              <input
-                type="number"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                placeholder="Max"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-              />
-            </div>
-            <div className="flex items-end gap-2">
-              <button
-                onClick={filterRooms}
-                className="flex-1 bg-tetClr text-white py-3 px-4 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors flex items-center gap-2 justify-center"
-              >
-                <FaFilter className="w-4 h-4" />
-                Search
-              </button>
-              <button
-                onClick={clearFilters}
-                className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Rooms Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {rooms.length === 0 ? (
-            <div className="col-span-full text-center text-gray-600 py-8">
-              No rooms found.
-            </div>
-          ) : (
-            rooms.map((room) => (
-              <div key={room.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-                <div className="relative">
-                  {Array.isArray(room.images) && room.images.length > 0 ? (
-                    <img 
-                      src={`${STORAGE_BASE_URL}/${room.images[0].replace(/^\/storage\//, "")}`}
-                      alt={room.room_type}
-                      className="w-full h-48 md:h-72 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
-                      No Image
-                    </div>
-                  )}
-                  <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
-                    ₦{parseFloat(room.price_per_night || 0).toLocaleString('en-NG')}
-                  </div>
-                  {room.is_available && (
-                    <div className="absolute top-4 left-4 bg-green-500 text-white py-1 px-3 rounded-full font-semibold text-base">
-                      Available
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{room.room_type}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{room.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {Array.isArray(room.amenities) && room.amenities.slice(0, 4).map((amenity, index) => (
-                      <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
-                        {amenityIcons[amenity] || <FaBed className="w-3 h-3" />}
-                        {amenity}
-                      </span>
-                    ))}
-                    {Array.isArray(room.amenities) && room.amenities.length > 4 && (
-                      <span className="text-base text-gray-500">+{room.amenities.length - 4} more</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center text-gray-600 mb-4">
-                    <FaUser className="w-4 h-4 mr-2" />
-                    Up to {room.max_guests} guests
-                  </div>
-
-                  <button 
-                    onClick={() => handleBook(room, 'room')}
-                    disabled={isBooking}
-                    className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isBooking ? 'Booking...' : 'Book Now'}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <FaSearch className="w-5 h-5" />
-            Search Apartments
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-base font-medium text-gray-700 mb-1">Min Price (₦)</label>
-              <input
-                type="number"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                placeholder="Min"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-              />
-            </div>
-            <div>
-              <label className="block text-base font-medium text-gray-700 mb-1">Max Price (₦)</label>
-              <input
-                type="number"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                placeholder="Max"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-              />
-            </div>
-            <div className="flex items-end gap-2">
-              <button
-                onClick={searchApartments}
-                className="flex-1 bg-tetClr text-white py-3 px-4 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors flex items-center gap-2 justify-center"
-              >
-                <FaFilter className="w-4 h-4" />
-                Search
-              </button>
-              <button
-                onClick={clearFilters}
-                className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Apartments Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {apartments.length === 0 ? (
-            <div className="col-span-full text-center text-gray-600 py-8">
-              No apartments found.
-            </div>
-          ) : (
-            apartments.map((apartment) => (
-              <div key={apartment.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-                <div className="relative">
-                  {Array.isArray(apartment.images) && apartment.images.length > 0 ? (
-                    <img 
-                      src={`${STORAGE_BASE_URL}/${apartment.images[0].replace(/^\/storage\//, "")}`}
-                      alt={apartment.name}
-                      className="w-full h-48 md:h-72 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
-                      No Image
-                    </div>
-                  )}
-                  <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
-                    ₦{parseFloat(apartment.price_per_night || 0).toLocaleString('en-NG')}
-                  </div>
-                  {apartment.is_available && (
-                    <div className="absolute top-4 left-4 bg-green-500 text-white py-1 px-3 rounded-full font-semibold text-base">
-                      Available
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{apartment.name}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{apartment.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {Array.isArray(apartment.amenities) && apartment.amenities.slice(0, 4).map((amenity, index) => (
-                      <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
-                        {amenityIcons[amenity] || <MdHotelClass className="w-3 h-3" />}
-                        {amenity}
-                      </span>
-                    ))}
-                    {Array.isArray(apartment.amenities) && apartment.amenities.length > 4 && (
-                      <span className="text-base text-gray-500">+{apartment.amenities.length - 4} more</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center text-gray-600 mb-4">
-                    <FaUser className="w-4 h-4 mr-2" />
-                    Up to {apartment.max_guests} guests
-                  </div>
-
-                  <button 
-                    onClick={() => handleBook(apartment, 'apartment')}
-                    disabled={isBooking}
-                    className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isBooking ? 'Booking...' : 'Book Now'}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
       </div>
 
-      {/* Booking Modal */}
-      {showBookingModal && selectedItem && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex flex-col lg:flex-row">
-              {/* Left side - Item image and details */}
-              <div className="lg:w-2/5 bg-gradient-to-b from-gray-50 to-gray-100 p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
-                  </h2>
-                  <button 
-                    onClick={() => {
-                      setShowBookingModal(false);
-                      setSelectedItem(null);
-                      setBookingType(null);
-                      setName('');
-                      setEmail('');
-                      setPhone('');
-                      setCheckInDate('');
-                      setCheckOutDate('');
-                      setSpecialRequests('');
-                      setTotalGuests(1);
-                    }}
-                    className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-colors"
-                  >
-                    <FaTimes size={20} />
-                  </button>
-                </div>
-                
-                {Array.isArray(selectedItem.images) && selectedItem.images.length > 0 ? (
-                  <img 
-                    src={`${STORAGE_BASE_URL}/${selectedItem.images[0].replace(/^\/storage\//, "")}`}
-                    alt={bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
-                    className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
-                  />
-                ) : (
-                  <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg mb-4 shadow-md">
-                    No Image
-                  </div>
-                )}
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-base font-medium text-gray-700">Price per night</span>
-                    <span className="font-semibold text-tetClr">₦{parseFloat(selectedItem.price_per_night || 0).toLocaleString('en-NG')}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-base font-medium text-gray-700">Max guests</span>
-                    <span className="font-semibold text-tetClr">Up to {selectedItem.max_guests}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {Array.isArray(selectedItem.amenities) && selectedItem.amenities.map((amenity, index) => (
-                      <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
-                        {amenityIcons[amenity] || <FaBed className="w-3 h-3" />}
-                        {amenity}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+      {/* Bookings Section */}
+      <div className="w-full py-12 md:py-20 bg-gradient-to-b from-white to-teal-50">
+        <div className="w-[90%] mx-auto max-w-7xl">
+          <div className="text-center mb-10 md:mb-12">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-trdClr tracking-tight">Luxury Accommodations</h1>
+            <p className="mt-4 text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Discover our exquisite collection of apartments and rooms, each designed to provide an unforgettable experience of comfort and luxury.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FaSearch className="w-5 h-5" />
+              Search Rooms
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-base font-medium text-gray-700 mb-1">Min Price (₦)</label>
+                <input
+                  type="number"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  placeholder="Min"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                />
               </div>
-              
-              {/* Right side - Booking form */}
-              <div className="lg:w-3/5 p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Complete Your Booking</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-base font-medium text-gray-700 mb-1">Max Price (₦)</label>
+                <input
+                  type="number"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  placeholder="Max"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <button
+                  onClick={filterRooms}
+                  className="flex-1 bg-tetClr text-white py-3 px-4 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors flex items-center gap-2 justify-center"
+                >
+                  <FaFilter className="w-4 h-4" />
+                  Search
+                </button>
+                <button
+                  onClick={clearFilters}
+                  className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {rooms.length === 0 ? (
+              <div className="col-span-full text-center text-gray-600 py-8">
+                No rooms found.
+              </div>
+            ) : (
+              rooms.map((room) => (
+                <div key={room.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
                   <div className="relative">
-                    <label className="block text-base font-medium text-gray-700 mb-1">Check-in Date</label>
-                    <input
-                      id="checkInDate"
-                      type="date"
-                      value={checkInDate}
-                      onChange={(e) => setCheckInDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleCalendarClick('checkInDate')}
-                      className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
-                    >
-                    </button>
+                    {Array.isArray(room.images) && room.images.length > 0 ? (
+                      <img 
+                        src={`${STORAGE_BASE_URL}/${room.images[0].replace(/^\/storage\//, "")}`}
+                        alt={room.room_type}
+                        className="w-full h-48 md:h-72 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
+                        No Image
+                      </div>
+                    )}
+                    <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
+                      ₦{parseFloat(room.price_per_night || 0).toLocaleString('en-NG')}
+                    </div>
+                    {room.is_available && (
+                      <div className="absolute top-4 left-4 bg-green-500 text-white py-1 px-3 rounded-full font-semibold text-base">
+                        Available
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="relative">
-                    <label className="block text-base font-medium text-gray-700 mb-1">Check-out Date</label>
-                    <input
-                      id="checkOutDate"
-                      type="date"
-                      value={checkOutDate}
-                      onChange={(e) => setCheckOutDate(e.target.value)}
-                      min={checkInDate || new Date().toISOString().split('T')[0]}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleCalendarClick('checkOutDate')}
-                      className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
+                  <div className="p-6 flex flex-col flex-grow">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{room.room_type}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{room.description}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {Array.isArray(room.amenities) && room.amenities.slice(0, 4).map((amenity, index) => (
+                        <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
+                          {amenityIcons[amenity] || <FaBed className="w-3 h-3" />}
+                          {amenity}
+                        </span>
+                      ))}
+                      {Array.isArray(room.amenities) && room.amenities.length > 4 && (
+                        <span className="text-base text-gray-500">+{room.amenities.length - 4} more</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center text-gray-600 mb-4">
+                      <FaUser className="w-4 h-4 mr-2" />
+                      Up to {room.max_guests} guests
+                    </div>
+
+                    <button 
+                      onClick={() => handleBook(room, 'room')}
+                      disabled={isBooking}
+                      className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
+                      {isBooking ? 'Booking...' : 'Book Now'}
                     </button>
                   </div>
                 </div>
-                
-                <div className="space-y-4 mb-6">
+              ))
+            )}
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FaSearch className="w-5 h-5" />
+              Search Apartments
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-base font-medium text-gray-700 mb-1">Min Price (₦)</label>
+                <input
+                  type="number"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  placeholder="Min"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                />
+              </div>
+              <div>
+                <label className="block text-base font-medium text-gray-700 mb-1">Max Price (₦)</label>
+                <input
+                  type="number"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  placeholder="Max"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <button
+                  onClick={searchApartments}
+                  className="flex-1 bg-tetClr text-white py-3 px-4 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors flex items-center gap-2 justify-center"
+                >
+                  <FaFilter className="w-4 h-4" />
+                  Search
+                </button>
+                <button
+                  onClick={clearFilters}
+                  className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {apartments.length === 0 ? (
+              <div className="col-span-full text-center text-gray-600 py-8">
+                No apartments found.
+              </div>
+            ) : (
+              apartments.map((apartment) => (
+                <div key={apartment.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
                   <div className="relative">
-                    <label className="block text-base font-medium text-gray-700 mb-1">Full Name</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your full name"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-                    />
-                    <FaUser className="absolute right-3 top-10 text-gray-400" />
+                    {Array.isArray(apartment.images) && apartment.images.length > 0 ? (
+                      <img 
+                        src={`${STORAGE_BASE_URL}/${apartment.images[0].replace(/^\/storage\//, "")}`}
+                        alt={apartment.name}
+                        className="w-full h-48 md:h-72 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
+                        No Image
+                      </div>
+                    )}
+                    <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
+                      ₦{parseFloat(apartment.price_per_night || 0).toLocaleString('en-NG')}
+                    </div>
+                    {apartment.is_available && (
+                      <div className="absolute top-4 left-4 bg-green-500 text-white py-1 px-3 rounded-full font-semibold text-base">
+                        Available
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-6 flex flex-col flex-grow">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{apartment.name}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{apartment.description}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {Array.isArray(apartment.amenities) && apartment.amenities.slice(0, 4).map((amenity, index) => (
+                        <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
+                          {amenityIcons[amenity] || <MdHotelClass className="w-3 h-3" />}
+                          {amenity}
+                        </span>
+                      ))}
+                      {Array.isArray(apartment.amenities) && apartment.amenities.length > 4 && (
+                        <span className="text-base text-gray-500">+{apartment.amenities.length - 4} more</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center text-gray-600 mb-4">
+                      <FaUser className="w-4 h-4 mr-2" />
+                      Up to {apartment.max_guests} guests
+                    </div>
+
+                    <button 
+                      onClick={() => handleBook(apartment, 'apartment')}
+                      disabled={isBooking}
+                      className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isBooking ? 'Booking...' : 'Book Now'}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+
+        {showBookingModal && selectedItem && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex flex-col lg:flex-row">
+                <div className="lg:w-2/5 bg-gradient-to-b from-gray-50 to-gray-100 p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
+                    </h2>
+                    <button 
+                      onClick={() => {
+                        setShowBookingModal(false);
+                        setSelectedItem(null);
+                        setBookingType(null);
+                        setName('');
+                        setEmail('');
+                        setPhone('');
+                        setCheckInDate('');
+                        setCheckOutDate('');
+                        setSpecialRequests('');
+                        totalGuests(1);
+                      }}
+                      className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      <FaTimes size={20} />
+                    </button>
+                  </div>
+                  
+                  {Array.isArray(selectedItem.images) && selectedItem.images.length > 0 ? (
+                    <img 
+                      src={`${STORAGE_BASE_URL}/${selectedItem.images[0].replace(/^\/storage\//, "")}`}
+                      alt={bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
+                      className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
+                    />
+                  ) : (
+                    <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg mb-4 shadow-md">
+                      No Image
+                    </div>
+                  )}
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-medium text-gray-700">Price per night</span>
+                      <span className="font-semibold text-tetClr">₦{parseFloat(selectedItem.price_per_night || 0).toLocaleString('en-NG')}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-medium text-gray-700">Max guests</span>
+                      <span className="font-semibold text-tetClr">Up to {selectedItem.max_guests}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.isArray(selectedItem.amenities) && selectedItem.amenities.map((amenity, index) => (
+                        <span key={index} className="flex items-center gap-1 text-base bg-gray-100 px-2 py-1 rounded-full">
+                          {amenityIcons[amenity] || <FaBed className="w-3 h-3" />}
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="lg:w-3/5 p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6">Complete Your Booking</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div className="relative">
-                      <label className="block text-base font-medium text-gray-700 mb-1">Phone Number</label>
+                      <label className="block text-base font-medium text-gray-700 mb-1">Check-in Date</label>
                       <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Enter your phone number"
+                        id="checkInDate"
+                        type="date"
+                        value={checkInDate}
+                        onChange={(e) => setCheckInDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
                       />
-                      <FaPhone className="absolute right-3 top-10 text-gray-400" />
+                      <button
+                        type="button"
+                        onClick={() => handleCalendarClick('checkInDate')}
+                        className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
+                      >
+                      </button>
                     </div>
                     
                     <div className="relative">
-                      <label className="block text-base font-medium text-gray-700 mb-1">Email Address</label>
+                      <label className="block text-base font-medium text-gray-700 mb-1">Check-out Date</label>
                       <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email address"
+                        id="checkOutDate"
+                        type="date"
+                        value={checkOutDate}
+                        onChange={(e) => setCheckOutDate(e.target.value)}
+                        min={checkInDate || new Date().toISOString().split('T')[0]}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
                       />
-                      <FaEnvelope className="absolute right-3 top-10 text-gray-400" />
+                      <button
+                        type="button"
+                        onClick={() => handleCalendarClick('checkOutDate')}
+                        className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
+                      >
+                      </button>
                     </div>
                   </div>
                   
-                  <div className="relative">
-                    <label className="block text-base font-medium text-gray-700 mb-1">Special Requests</label>
-                    <textarea
-                      value={specialRequests}
-                      onChange={(e) => setSpecialRequests(e.target.value)}
-                      placeholder="Enter any special requests"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-                      rows="3"
-                    />
-                    <FaComment className="absolute right-3 top-10 text-gray-400" />
-                  </div>
-                </div>
-                
-                {checkInDate && checkOutDate && (
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-3">Booking Summary</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-700">₦{parseFloat(selectedItem.price_per_night || 0).toLocaleString('en-NG')} x {totalNights()} night(s)</span>
-                        <span className="font-semibold">₦{calculateTotal().toLocaleString('en-NG')}</span>
+                  <div className="space-y-4 mb-6">
+                    <div className="relative">
+                      <label className="block text-base font-medium text-gray-700 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your full name"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                      />
+                      <FaUser className="absolute right-3 top-10 text-gray-400" />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <label className="block text-base font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="Enter your phone number"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                        />
+                        <FaPhone className="absolute right-3 top-10 text-gray-400" />
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                        <span className="text-lg font-bold text-gray-900">Total Amount:</span>
-                        <span className="text-lg font-bold text-tetClr">₦{calculateTotal().toLocaleString('en-NG')}</span>
+                      
+                      <div className="relative">
+                        <label className="block text-base font-medium text-gray-700 mb-1">Email Address</label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Enter your email address"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                        />
+                        <FaEnvelope className="absolute right-3 top-10 text-gray-400" />
                       </div>
                     </div>
+                    
+                    <div className="relative">
+                      <label className="block text-base font-medium text-gray-700 mb-1">Special Requests</label>
+                      <textarea
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
+                        placeholder="Enter any special requests"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
+                        rows="3"
+                      />
+                      <FaComment className="absolute right-3 top-10 text-gray-400" />
+                    </div>
                   </div>
-                )}
-                
-                <div className="relative">
-                  <button
-                    onClick={handleProceed}
-                    disabled={isBooking || !checkInDate || !checkOutDate || !name || !phone || !email || !totalGuests || isPaymentLoading}
-                    className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {isPaymentLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Processing...
+                  
+                  {checkInDate && checkOutDate && (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                      <h4 className="font-semibold text-gray-900 mb-3">Booking Summary</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700">₦{parseFloat(selectedItem.price_per_night || 0).toLocaleString('en-NG')} x {totalNights()} night(s)</span>
+                          <span className="font-semibold">₦{calculateTotal().toLocaleString('en-NG')}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                          <span className="text-lg font-bold text-gray-900">Total Amount:</span>
+                          <span className="text-lg font-bold text-tetClr">₦{calculateTotal().toLocaleString('en-NG')}</span>
+                        </div>
                       </div>
-                    ) : (
-                      'Proceed to Payment'
-                    )}
-                  </button>
+                    </div>
+                  )}
+                  
+                  <div className="relative">
+                    <button
+                      onClick={handleProceed}
+                      disabled={isBooking || !checkInDate || !checkOutDate || !name || !phone || !email || !totalGuests || isPaymentLoading}
+                      className="w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                      {isPaymentLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        'Proceed to Payment'
+                      )}
+                    </button>
+                  </div>
+                  
+                  <p className="text-base text-gray-500 text-center mt-4">
+                    By proceeding, you agree to our Terms of Service and Privacy Policy.
+                  </p>
                 </div>
-                
-                <p className="text-base text-gray-500 text-center mt-4">
-                  By proceeding, you agree to our Terms of Service and Privacy Policy.
-                </p>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

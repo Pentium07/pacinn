@@ -46,14 +46,17 @@ const Login = () => {
         toast.success('Login successful');
 
         const token = response.data.token || response.data.access_token || response.data?.data?.authorization?.token;
+        const role = response.data.role || 'user'; // Default to 'user' if role is not provided
 
         if (token) {
           localStorage.setItem("token", token);
+          localStorage.setItem("role", role);
         } else {
           console.error("No token found in login response");
         }
 
-        navigate('/admin/dashboard');
+        // Navigate based on role
+        navigate(role === 'admin' ? '/admin/dashboard' : '/admin/scanner');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
@@ -141,12 +144,6 @@ const Login = () => {
             </Form>
           )}
         </Formik>
-        {/* <p className="mt-4 md:mt-5 lg:mt-6 text-center text-sm md:text-sm lg:text-base text-gray-600">
-          Don't have an account?{' '}
-          <a href="/register" className="text-tetClr hover:underline font-medium">
-            Register
-          </a>
-        </p> */}
       </div>
     </div>
   );

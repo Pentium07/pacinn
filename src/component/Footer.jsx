@@ -52,7 +52,7 @@ const Footer = () => {
             </div>
 
             {/* Quick Links */}
-            <div className="flex flex-col gap-4 md:gap-6 lg:gap-5 ">
+            <div className="flex flex-col gap-4 md:gap-6 lg:gap-5 hidden md:block">
               <h3 className="text-base md:text-lg lg:text-xl font-bold text-white relative pb-1 md:pb-2 after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-12 after:bg-gradient-to-r after:from-[#F0CB46] after:to-[#CCA000]">
                 Explore
               </h3>

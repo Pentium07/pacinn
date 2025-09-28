@@ -1,12 +1,12 @@
-// import React from 'react';
+import React, { useEffect } from 'react';
 import assets from '../assets/assests';
-import { NavLink } from "react-router-dom";
-import React, { useEffect, useRef } from 'react';
-import { Icon } from '@iconify/react';
-// import { NavLink } from 'react-router-dom';
-import { FaFacebookF, FaTwitter, FaInstagram, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaWhatsapp, FaStar } from 'react-icons/fa';
+import { NavLink, useLocation } from 'react-router-dom';
+import { FaFacebookF, FaTwitter, FaInstagram, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaWhatsapp, FaStar, FaTiktok } from 'react-icons/fa';
+import EventSection from './EventSection';
 
 const Home = () => {
+  const location = useLocation();
+
   const cards = [
     {
       title: 'Rooms & Apartments',
@@ -52,7 +52,6 @@ const Home = () => {
     },
   ];
 
-
   const rooms = [
     {
       id: 1,
@@ -68,7 +67,7 @@ const Home = () => {
       price: 280,
       rating: 4.7,
       image: assets.pic8,
-      description: "Experience luxury at its finest in the Royal Suite, with grand interiors, extra space, and exclusive features fit for royalty",
+      description: "Experience luxury at its finest in the Royal Suite, with grand interiors, extra space, and exclusive features fit for royalty and a relaxing lounge area.",
     },
     {
       id: 3,
@@ -80,78 +79,48 @@ const Home = () => {
     },
   ];
 
-  const events = [
+  const testimonials = [
     {
       id: 1,
-      title: "Summer Gala Night",
-      subtitle: "Join us for an evening of elegance with live music, gourmet dining,  fireworks under the stars.",
-      image: assets.pic10,
+      name: "Chinelo Okafor",
+      review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
     },
     {
       id: 2,
-      title: "Wine Tasting Extravaganza",
-      subtitle: "Savor exquisite wines from top vineyards, paired with artisanal cheeses inusive club lounge.",
-      image: assets.pic10,
+      name: "Emeka Nwosu",
+      review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
     },
     {
       id: 3,
-      title: "Jazz & Blues Festival",
-      subtitle: "Experience soulful performances by world-class artists in an open with vibrant energy.",
-      image: assets.pic10,
+      name: "Amina Bello",
+      review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
+    },
+    {
+      id: 4,
+      name: "Tunde Adeyemi",
+      review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
     },
   ];
-
-
-const testimonials = [
-  {
-    id: 1,
-    name: "Chinelo Okafor",
-    review: "An absolutely delightful stay! The staff was incredibly attentive, and the ambiance was pure luxury. Highly recommend!",
-  },
-  {
-    id: 2,
-    name: "Emeka Nwosu",
-    review: "The best hotel experience I've ever had. The rooms were pristine, and the service was top-notch. I'll be back!",
-  },
-  {
-    id: 3,
-    name: "Amina Bello",
-    review: "Pac Inn made our vacation unforgettable. The attention to detail and warm hospitality were exceptional!",
-  },
-  {
-    id: 4,
-    name: "Tunde Adeyemi",
-    review: "From the moment we arrived, we felt welcomed. The amenities and comfort exceeded all expectations!",
-  },
-];
-
-
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
 
-
   return (
     <div className="w-full flex flex-col">
       <div className="relative w-full h-[100vh] items-center justify-center overflow-hidden">
-        {/* Background Image */}
         <img
           src={assets.bg}
           alt="Background"
           className="absolute inset-0 w-full h-full object-cover"
         />
-
-        {/* Gradient Overlay - Solid on small screens, original gradient on larger screens */}
         <div className="absolute inset-0 bg-pryClr/70 lg:bg-pryClr/0 md:bg-gradient-to-r md:from-pryClr md:via-pryClr/70 md:to-pryClr/20"></div>
-
-        {/* Wrapper with 90% width */}
         <div className="relative z-10 w-[90%] mx-auto h-full flex items-center text-center md:text-left">
           <div className="w-full flex flex-col gap-10 md:gap-10 md:w-[55%]">
             <h1 className="text-3xl font-bold text-white md:text-6xl hidden md:block">
               Welcome to <span className="text-secClr">Pac Inn</span>
             </h1>
-            <h1 className="text-xl  text-white md:text-6xl block md:hidden">
+            <h1 className="text-xl text-white md:text-6xl block md:hidden">
               Welcome to <br /> <span className="text-secClr font-bold text-6xl">Pac Inn</span>
             </h1>
             <p className="text-sm text-gray-200 md:text-lg leading-relaxed">
@@ -178,9 +147,8 @@ const testimonials = [
         </div>
       </div>
 
-
       <div className="w-full flex flex-col gap-16 items-center justify-center text-gray-900 py-12 md:py-12 bg-gradient-to-b from-gray-50 to-blue-100">
-        <div className="w-[90%]  flex flex-col gap-12 items-center text-center">
+        <div className="w-[90%] flex flex-col gap-12 items-center text-center">
           <div className="w-full md:w-[70%] flex flex-col gap-6 items-center">
             <h2 className="font-bold text-3xl md:text-5xl text-trdClr">
               Why Choose <span>Pac Inn?</span>
@@ -195,9 +163,7 @@ const testimonials = [
                 key={index}
                 className={`relative ${card.bgColor} p-6 md:p-6 rounded-3xl shadow-2xl hover:shadow-3xl hover:-translate-y-4 transform transition-all duration-500 flex flex-col items-center text-center ${card.textColor} overflow-hidden group`}
               >
-                {/* Decorative Background Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500"></div>
-                {/* Image with Zoom Effect */}
                 <div className="relative w-full h-70 overflow-hidden rounded-2xl mb-6">
                   <img
                     src={card.image}
@@ -205,11 +171,9 @@ const testimonials = [
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 </div>
-                {/* Title with Smooth Animation */}
                 <h3 className="relative text-xl md:text-2xl font-bold mb-4 tracking-wide drop-shadow-lg">
                   {card.title}
                 </h3>
-                {/* Subtitle with Fade-in Effect */}
                 <p className="relative text-sm md:text-base leading-6 opacity-90 max-w-md drop-shadow-md">
                   {card.subtitle}
                 </p>
@@ -220,10 +184,10 @@ const testimonials = [
       </div>
 
       <div className="w-full flex flex-col gap-16 items-center justify-center text-gray-900 py-12 md:py-12 bg-tetClr/40">
-        <div className="w-[90%]  flex flex-col gap-12 items-center text-center">
+        <div className="w-[90%] flex flex-col gap-12 items-center text-center">
           <div className="w-full md:w-[70%] flex flex-col gap-6 items-center">
             <h2 className="font-bold text-3xl md:text-5xl text-trdClr">
-              Accomodations
+              Accommodations
             </h2>
             <p className="w-full text-sm md:text-lg leading-7 md:leading-9 text-pryClr">
               Indulge in unmatched comfort and elegance with our carefully curated room selections at Pac Inn Hotel, designed for an unforgettable stay.
@@ -233,15 +197,15 @@ const testimonials = [
             {rooms.map((room) => (
               <div
                 key={room.id}
-                className="relative group bg-white rounded-3xl shadow-xl overflow-hidden transform transition-all duration-500 hover:-translate-y-3 hover:shadow-2xl "
+                className="relative group bg-white rounded-3xl shadow-xl overflow-hidden transform transition-all duration-500 hover:-translate-y-3 hover:shadow-2xl"
               >
-                <div className="relative h-70  overflow-hidden">
+                <div className="relative h-70 overflow-hidden">
                   <img
                     src={room.image}
                     alt={room.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
-                  <div className="absolute top-0 right-0 bg-tetClr flex gap-2 items-center  text-white text-sm font-semibold px-4 py-2 rounded-bl-2xl shadow-md">
+                  <div className="absolute top-0 right-0 bg-tetClr flex gap-2 items-center text-white text-sm font-semibold px-4 py-2 rounded-bl-2xl shadow-md">
                     <span className="text-white text-lg">★</span>
                     <span className="text-white font-semibold">{room.rating}</span>
                   </div>
@@ -254,7 +218,6 @@ const testimonials = [
                   <p className="text-gray-600 text-sm md:text-sm line-clamp-3 leading-relaxed text-start">
                     {room.description}
                   </p>
-
                   <NavLink
                     to="/booking"
                     className="mt-4 w-full bg-tetClr text-white py-3 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-teal-600 transition-all duration-300 transform hover:scale-105"
@@ -268,7 +231,6 @@ const testimonials = [
         </div>
       </div>
 
-
       <div className="w-full flex flex-col gap-16 items-center justify-center text-gray-900 py-12 md:py-12 bg-gradient-to-b from-blue-50 to-gray-100">
         <div className="w-[90%] flex flex-col gap-12 items-center text-center">
           <div className="w-full md:w-[70%] flex flex-col gap-6 items-center">
@@ -279,35 +241,43 @@ const testimonials = [
               Immerse yourself in unforgettable moments with our curated events, designed to thrill, delight, and inspire.
             </p>
           </div>
-          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-            {events.map((event) => (
+          <EventSection />
+        </div>
+      </div>
+
+      <div className="w-full bg-tetClr/50 py-12 md:py-16 lg:py-20">
+        <div className="w-[90%] mx-auto">
+          <div className="text-center mb-10 md:mb-12 lg:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-trdClr tracking-tight">
+              Our Guests' Experiences
+            </h2>
+            <p className="mt-4 text-sm md:text-lg lg:text-xl text-trdClr mx-auto leading-7 md:leading-8">
+              Hear from our valued guests about their remarkable stays at Pac Inn, where luxury meets heartfelt hospitality.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            {testimonials.map((testimonial) => (
               <div
-                key={event.id}
-                className="relative bg-white rounded-3xl shadow-2xl hover:shadow-3xl hover:-translate-y-4 transform transition-all duration-500 overflow-hidden group"
+                key={testimonial.id}
+                className="bg-white rounded-xl shadow-md p-4 md:p-6 border-l-4 border-trdClr transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
               >
-                {/* Image with Zoom Effect */}
-                <div className="relative w-full h-70 overflow-hidden rounded-t-3xl">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500"></div>
-                </div>
-                {/* Content */}
-                <div className="p-4 flex flex-col gap-2 text-center">
-                  <h3 className="text-xl md:text-xl font-bold text-gray-800 tracking-wide drop-shadow-lg">
-                    {event.title}
-                  </h3>
-                  <p className="text-sm md:text-sm text-gray-600 leading-6 opacity-90 max-w-md mx-auto">
-                    {event.subtitle}
+                <div className="flex flex-col gap-4 text-center">
+                  <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full bg-trdClr flex items-center justify-center text-white font-semibold text-lg md:text-xl">
+                    {testimonial.name[0]}
+                  </div>
+                  <div>
+                    <h3 className="text-base md:text-lg font-semibold text-slate-800">
+                      {testimonial.name}
+                    </h3>
+                    <div className="flex justify-center gap-1 mt-2">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar key={i} className="text-amber-400 text-sm md:text-base" />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed font-medium">
+                    "{testimonial.review}"
                   </p>
-                  <NavLink
-                    to="/ticket"
-                    className="mt-4 inline-block bg-tetClr text-white py-3 px-6 rounded-full font-semibold text-sm md:text-sm hover:from-teal-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105"
-                  >
-                    View Details
-                  </NavLink>
                 </div>
               </div>
             ))}
@@ -315,119 +285,84 @@ const testimonials = [
         </div>
       </div>
 
-    <div className="w-full bg-tetClr/50 py-12 md:py-16 lg:py-20">
+      <div className="w-full py-12 md:py-20 bg-gradient-to-b from-white to-teal-50">
       <div className="w-[90%] mx-auto ">
-        {/* Header */}
-        <div className="text-center mb-10 md:mb-12 lg:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-trdClr tracking-tight">
-            Our Guests' Experiences
+        <div className="text-center mb-10 md:mb-12">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-trdClr tracking-tight">
+            Get in Touch
           </h2>
-          <p className="mt-4 text-sm md:text-lg lg:text-xl text-trdClr mx-auto leading-7 md:leading-8">
-            Hear from our valued guests about their remarkable stays at Pac Inn, where luxury meets heartfelt hospitality.
+          <p className="mt-4 text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Connect with us at Pac Inn Hotel for an unforgettable experience. We’re here to assist you!
           </p>
         </div>
-
-        {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {testimonials.map((testimonial) => (
-            <div
-              key={testimonial.id}
-              className="bg-white rounded-xl shadow-md p-4 md:p-6 border-l-4 border-trdClr transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-            >
-              <div className="flex flex-col gap-4 text-center">
-                {/* Avatar Placeholder */}
-                <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full bg-trdClr flex items-center justify-center text-white font-semibold text-lg md:text-xl">
-                  {testimonial.name[0]}
-                </div>
-                {/* Name and Rating */}
-                <div>
-                  <h3 className="text-base md:text-lg font-semibold text-slate-800">
-                    {testimonial.name}
-                  </h3>
-                  <div className="flex justify-center gap-1 mt-2">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar key={i} className="text-amber-400 text-sm md:text-base" />
-                    ))}
-                  </div>
-                </div>
-                {/* Review */}
-                <p className="text-sm md:text-base text-gray-600 leading-relaxed font-medium">
-                  "{testimonial.review}"
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-
-      <div className="w-full flex flex-col gap-12 items-center justify-center text-gray-800 py-12 md:py-20 bg-gradient-to-b from-white to-teal-50">
-        <div className="w-[90%] flex flex-col gap-10">
-          <div className="w-full h-[100vh] md:h-[60vh] flex flex-col lg:flex-row gap-8 md:gap-12">
-            {/* Google Map */}
-            <div className="w-full flex-[7]  rounded-2xl overflow-hidden shadow-lg border border-gray-200/50">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3949.4573106884054!2d4.266256575991439!3d8.156594502032485!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x10370d70992ed1a9%3A0xf8c3fb52d36ebda7!2sPAC%20Inn1!5e0!3m2!1sen!2sng!4v1757628541473!5m2!1sen!2sng"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Pac Inn Hotel Location"
-              ></iframe>
-            </div>
-            {/* Contact Information */}
-            <div className="w-full flex-[3] flex flex-col justify-center bg-pryClr/20 rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200/50">
-              <h3 className="text-2xl md:text-3xl font-bold text-trdClr mb-6 tracking-tight">Contact Us</h3>
-              <div className="flex flex-col gap-6 text-trdClr text-base md:text-lg">
-                <p className="flex items-center gap-3">
-                  <FaMapMarkerAlt className=" flex-shrink-0 w-5 h-5 text-trdClr" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+          {/* Map Container */}
+          <div className="relative rounded-3xl overflow-hidden shadow-xl border border-gray-100/50 transform transition-all duration-500 hover:shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-tetClr/10 to-transparent z-10"></div>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3949.4573106884054!2d4.266256575991439!3d8.156594502032485!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x10370d70992ed1a9%3A0xf8c3fb52d36ebda7!2sPAC%20Inn1!5e0!3m2!1sen!2sng!4v1757628541473!5m2!1sen!2sng"
+              width="100%"
+              height="450"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Pac Inn Hotel Location"
+              className="w-full h-[60vh] md:h-full"
+            ></iframe>
+          </div>
+          {/* Contact Information */}
+          <div className="relative bg-white rounded-3xl shadow-xl p-6 md:p-8 border border-gray-100/50 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl animate-fadeIn">
+            <h3 className="text-2xl md:text-3xl font-bold text-trdClr mb-6 tracking-tight">
+              Contact Us
+            </h3>
+            <div className="flex flex-col gap-6 text-trdClr text-base md:text-lg">
+              <div className="flex items-center gap-4 group">
+                <FaMapMarkerAlt className="flex-shrink-0 w-6 h-6 text-tetClr group-hover:text-secClr transition-colors duration-300" />
+                <p className="leading-relaxed">
                   Pac Inn, Under G, Ogbomosho, Oyo State, Nigeria
                 </p>
-                <p className="flex items-center gap-3">
-                  <FaPhoneAlt className=" flex-shrink-0 w-5 h-5 text-trdClr" />
-                  0912 817 0788
-                </p>
-                <p className="flex items-center gap-3">
-                  <FaEnvelope className=" flex-shrink-0 w-5 h-5 text-trdClr" />
-                  pacinn21@gmail.com
-                </p>
-                <div className="flex gap-6 mt-6 justify-center">
-                  <NavLink
-                    to="https://wa.me/2349128170788"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-trdClr hover:text-trdClr transition-colors duration-300"
-                  >
-                    <FaWhatsapp className="w-6 h-6" />
-                  </NavLink>
-                  <NavLink
-                    to="https://twitter.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-trdClr hover:text-trdClr transition-colors duration-300"
-                  >
-                    <FaTwitter className="w-6 h-6" />
-                  </NavLink>
-                  <NavLink
-                    to="https://www.instagram.com/pac.inn?igsh=MTBtbm8xYThpczBuOQ=="
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-trdClr hover:text-trdClr transition-colors duration-300"
-                  >
-                    <FaInstagram className="w-6 h-6" />
-                  </NavLink>
-                </div>
+              </div>
+              <div className="flex items-center gap-4 group">
+                <FaPhoneAlt className="flex-shrink-0 w-6 h-6 text-tetClr group-hover:text-secClr transition-colors duration-300" />
+                <p className="leading-relaxed">0912 817 0788, 0806 896 4678</p>
+              </div>
+              <div className="flex items-center gap-4 group">
+                <FaEnvelope className="flex-shrink-0 w-6 h-6 text-tetClr group-hover:text-secClr transition-colors duration-300" />
+                <p className="leading-relaxed">pacinn21@gmail.com</p>
+              </div>
+              <div className="flex gap-6 mt-8 justify-center">
+                <NavLink
+                  to="https://wa.me/2349128170788"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-trdClr hover:text-secClr transition-all duration-300 transform hover:scale-110"
+                >
+                  <FaWhatsapp className="w-8 h-8" />
+                </NavLink>
+                <NavLink
+                  to="https://www.tiktok.com/@pac.inn3?_t=ZS-906TEpZVkAM&_r=1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-trdClr hover:text-secClr transition-all duration-300 transform hover:scale-110"
+                >
+                  <FaTiktok className="w-8 h-8" />
+                </NavLink>
+                <NavLink
+                  to="https://www.instagram.com/pac.inn?igsh=MTBtbm8xYThpczBuOQ=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-trdClr hover:text-secClr transition-all duration-300 transform hover:scale-110"
+                >
+                  <FaInstagram className="w-8 h-8" />
+                </NavLink>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-
     </div>
-
+    </div>
   );
 };
 

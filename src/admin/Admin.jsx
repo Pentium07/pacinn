@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { 
@@ -22,10 +22,19 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 const Admin = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const userRole = localStorage.getItem('role') || 'user'; // Default to 'user' if role is not set
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  // Redirect users from /admin/dashboard to /admin/scanner
+  useEffect(() => {
+    if (userRole === 'user' && location.pathname === '/admin/dashboard') {
+      navigate('/admin/scanner');
+    }
+  }, [userRole, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -44,11 +53,27 @@ const Admin = ({ children }) => {
 
       toast.success('Logged out successfully');
       localStorage.removeItem('token');
+      localStorage.removeItem('role');
       navigate('/login');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Logout failed');
     }
   };
+
+  // Navigation links with role-based access
+  const navLinks = [
+    { path: '/admin/dashboard', label: 'Dashboard', icon: <FaTachometerAlt className="text-base" />, roles: ['admin'] },
+    { path: '/admin/room', label: 'Rooms', icon: <FaBed className="text-base" />, roles: ['admin'] },
+    { path: '/admin/booking', label: 'Bookings', icon: <FaClipboardList className="text-base" />, roles: ['admin'] },
+    { path: '/admin/event', label: 'Events', icon: <FaCalendarAlt className="text-base" />, roles: ['admin'] },
+    { path: '/admin/purchase', label: 'Purchase', icon: <FaTicketAlt className="text-base" />, roles: ['admin', 'user'] },
+    { path: '/admin/scanner', label: 'Scanner', icon: <FaQrcode className="text-base" />, roles: ['admin', 'user'] },
+    { path: '/admin/user', label: 'Users', icon: <FaUsers className="text-base" />, roles: ['admin'] },
+    { path: '/admin/subscriber', label: 'Subscribers', icon: <FaEnvelope className="text-base" />, roles: ['admin'] },
+  ];
+
+  // Filter links based on user role
+  const filteredNavLinks = navLinks.filter(link => link.roles.includes(userRole));
 
   const linkClass =
     'group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-tetClr hover:shadow-sm hover:scale-[1.02]';
@@ -97,93 +122,19 @@ const Admin = ({ children }) => {
 
           {/* Nav */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            <NavLink
-              to="/admin/dashboard"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaTachometerAlt className="text-base" />
-              <span className="font-medium">Dashboard</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/room"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaBed className="text-base" />
-              <span className="font-medium">Rooms</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/booking"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaClipboardList className="text-base" />
-              <span className="font-medium">Bookings</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/event"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaCalendarAlt className="text-base" />
-              <span className="font-medium">Events</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/purchase"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaTicketAlt className="text-base" />
-              <span className="font-medium">Purchase</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/scanner"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaQrcode className="text-base" />
-              <span className="font-medium">Scanner</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/user"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaUsers className="text-base" />
-              <span className="font-medium">Users</span>
-            </NavLink>
-
-            <NavLink
-              to="/admin/subscriber"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaEnvelope className="text-base" />
-              <span className="font-medium">Subscribers</span>
-            </NavLink>
+            {filteredNavLinks.map((link, index) => (
+              <NavLink
+                key={index}
+                to={link.path}
+                className={({ isActive }) =>
+                  `${linkClass} ${isActive ? activeClass : 'text-white'}`
+                }
+                onClick={() => setSidebarOpen(false)}
+              >
+                {link.icon}
+                <span className="font-medium">{link.label}</span>
+              </NavLink>
+            ))}
           </nav>
 
           {/* Logout */}

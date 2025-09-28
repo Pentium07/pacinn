@@ -3,7 +3,8 @@ import axios from 'axios';
 import { FaTimes, FaUser, FaEnvelope, FaPhone } from 'react-icons/fa';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import assets from '../assets/assests';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 const STORAGE_URL = import.meta.env.VITE_STORAGE_BASE_URL;
@@ -13,9 +14,14 @@ const Ticket = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Tracks submission to disable Pay Now after click
-  const [isButtonLoading, setIsButtonLoading] = useState({}); // Tracks loading state for each button
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
 
   useEffect(() => {
     if (selectedEvent) {
@@ -114,19 +120,15 @@ const Ticket = () => {
     fetchEvents();
   }, []);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location]);
-
   const handleBuy = (event) => {
     if (event.canPay && !isSubmitting) {
-      setIsSubmitting(true); // Disable further clicks
+      setIsSubmitting(true);
       setIsButtonLoading(prev => ({ ...prev, [`buy_${event.id}`]: true }));
       setTimeout(() => {
         setSelectedEvent(event);
         setIsButtonLoading(prev => ({ ...prev, [`buy_${event.id}`]: false }));
-        setIsSubmitting(false); // Re-enable after form opens
-      }, 1000); // Simulate loading for 1 second
+        setIsSubmitting(false);
+      }, 1000);
     }
   };
 
@@ -142,7 +144,7 @@ const Ticket = () => {
         formik.setFieldValue('quantity', formik.values.quantity > 1 ? formik.values.quantity - 1 : 1);
       }
       setIsButtonLoading(prev => ({ ...prev, [buttonKey]: false }));
-    }, 500); // Simulate loading for 0.5 seconds
+    }, 500);
   };
 
   const formik = useFormik({
@@ -166,7 +168,7 @@ const Ticket = () => {
     }),
     onSubmit: async (values, { resetForm }) => {
       if (!selectedEvent || isSubmitting) return;
-      setIsSubmitting(true); // Disable Pay Now button after click
+      setIsSubmitting(true);
       setIsButtonLoading(prev => ({ ...prev, pay: true }));
       try {
         localStorage.setItem('eventName', selectedEvent.name);
@@ -236,7 +238,7 @@ const Ticket = () => {
         });
       } finally {
         setIsButtonLoading(prev => ({ ...prev, pay: false }));
-        setIsSubmitting(false); // Re-enable Pay Now after processing
+        setIsSubmitting(false);
       }
     },
     enableReinitialize: true,
@@ -253,83 +255,106 @@ const Ticket = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-trdClr/15 py-12 pt-28">
-      <div className="w-[90%] mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Exclusive Events</h1>
-          <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
-            Join us for unforgettable experiences with our curated selection of premium events.
+    <div className="w-full flex flex-col">
+      {/* Hero Section */}
+      <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
+        <img
+          src={assets.bg}
+          alt="Events Background"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-pryClr/70 bg-gradient-to-r from-pryClr via-pryClr/70 to-pryClr/20"></div>
+        <div className="relative z-10 w-[90%] mx-auto text-center animate-fadeIn flex flex-col gap-4 md:gap-8 mt-8">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white">
+            Book Your <span className="text-secClr">Event Tickets</span>
+          </h1>
+          <p className="text-base md:text-lg lg:text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
+            Discover and reserve your spot for exclusive events at Pac Inn Hotel. Create unforgettable memories with us.
           </p>
         </div>
+      </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-pulse flex space-x-4">
-              <div className="rounded-full bg-tetClr h-12 w-12"></div>
-              <div className="flex-1 space-y-6 py-1">
-                <div className="h-2 bg-tetClr rounded"></div>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="h-2 bg-tetClr rounded col-span-2"></div>
-                    <div className="h-2 bg-tetClr rounded col-span-1"></div>
-                  </div>
+      {/* Ticket Section */}
+      <div className="w-full py-12 md:py-20 bg-gradient-to-b from-white to-teal-50">
+        <div className="w-[90%] mx-auto max-w-7xl">
+          <div className="text-center mb-10 md:mb-12">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-trdClr tracking-tight">
+              Exclusive Events
+            </h2>
+            <p className="mt-4 text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Join us for unforgettable experiences with our curated selection of premium events.
+            </p>
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-pulse flex space-x-4">
+                <div className="rounded-full bg-tetClr h-12 w-12"></div>
+                <div className="flex-1 space-y-6 py-1">
                   <div className="h-2 bg-tetClr rounded"></div>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="h-2 bg-tetClr rounded col-span-2"></div>
+                      <div className="h-2 bg-tetClr rounded col-span-1"></div>
+                    </div>
+                    <div className="h-2 bg-tetClr rounded"></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : error ? (
-          <div className="text-center text-gray-600">{error}</div>
-        ) : events.length === 0 ? (
-          <div className="text-center text-gray-600">No events found</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-2xl"
-              >
-                <div className="relative">
-                  <img
-                    src={event.image}
-                    alt={event.name}
-                    className="w-full h-72 md:h-64 object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute top-0 left-0 w-full h-16 flex items-center justify-between px-4">
-                    <span className="text-white font-semibold text-sm bg-tetClr rounded-full px-3 py-1">{event.tickets[0]?.type || 'Regular'}</span>
-                    <span className="text-white font-semibold text-sm bg-tetClr rounded-full px-3 py-1">
-                      {typeof event.minPrice === 'number' ? `₦${event.minPrice.toLocaleString('en-NG')}` : 'N/A'}
-                    </span>
+          ) : error ? (
+            <div className="text-center text-gray-600">{error}</div>
+          ) : events.length === 0 ? (
+            <div className="text-center text-gray-600">No events found</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+              {events.map((event) => (
+                <div
+                  key={event.id}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-2xl"
+                >
+                  <div className="relative">
+                    <img
+                      src={event.image}
+                      alt={event.name}
+                      className="w-full h-72 md:h-64 object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute top-0 left-0 w-full h-16 flex items-center justify-between px-4">
+                      <span className="text-white font-semibold text-sm bg-tetClr rounded-full px-3 py-1">{event.tickets[0]?.type || 'Regular'}</span>
+                      <span className="text-white font-semibold text-sm bg-tetClr rounded-full px-3 py-1">
+                        {typeof event.minPrice === 'number' ? `₦${event.minPrice.toLocaleString('en-NG')}` : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-5 flex flex-col flex-grow">
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 line-clamp-2">{event.name}</h3>
+                    <p className="text-gray-600 text-sm flex-grow line-clamp-3">{event.subtitle}</p>
+                    <div className="mt-4">
+                      <button
+                        onClick={() => handleBuy(event)}
+                        disabled={!event.canPay || isSubmitting || isButtonLoading[`buy_${event.id}`]}
+                        className={`w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/90 transition-all duration-300 shadow-md ${!event.canPay || isSubmitting || isButtonLoading[`buy_${event.id}`] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {isButtonLoading[`buy_${event.id}`] ? (
+                          <span className="flex items-center justify-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading...
+                          </span>
+                        ) : (
+                          'Buy Now'
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="p-5 flex flex-col flex-grow">
-                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 line-clamp-2">{event.name}</h3>
-                  <p className="text-gray-600 text-sm flex-grow line-clamp-3">{event.subtitle}</p>
-                  <div className="mt-4">
-                    <button
-                      onClick={() => handleBuy(event)}
-                      disabled={!event.canPay || isSubmitting || isButtonLoading[`buy_${event.id}`]}
-                      className={`w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/90 transition-all duration-300 shadow-md ${!event.canPay || isSubmitting || isButtonLoading[`buy_${event.id}`] ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {isButtonLoading[`buy_${event.id}`] ? (
-                        <span className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Loading...
-                        </span>
-                      ) : (
-                        'Buy Now'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedEvent && (
@@ -342,7 +367,7 @@ const Ticket = () => {
                   onClick={() => {
                     setSelectedEvent(null);
                     formik.resetForm();
-                    setIsSubmitting(false); // Reset submitting state when closing form
+                    setIsSubmitting(false);
                   }}
                   className="text-gray-500 hover:text-gray-700 p-2 rounded-full transition-colors"
                 >
@@ -463,12 +488,12 @@ const Ticket = () => {
                           <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Loading...
-                        </span>
-                      ) : (
-                        '-'
-                      )}
+                        </svg>
+                        Loading...
+                      </span>
+                    ) : (
+                      '-'
+                    )}
                     </button>
                     <span className="text-base sm:text-lg font-semibold">{formik.values.quantity}</span>
                     <button
@@ -482,12 +507,12 @@ const Ticket = () => {
                           <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Loading...
-                        </span>
-                      ) : (
-                        '+'
-                      )}
+                        </svg>
+                        Loading...
+                      </span>
+                    ) : (
+                      '+'
+                    )}
                     </button>
                   </div>
                   {formik.touched.quantity && formik.errors.quantity && (

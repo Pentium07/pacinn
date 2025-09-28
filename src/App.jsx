@@ -19,6 +19,7 @@ import Subscriber from './admin/Subscriber';
 import Booking from './admin/Booking';
 import Purchase from './admin/Purchase';
 import BookingStatus from './pages/BookingStatus';
+import EventSection from './pages/EventSection';
 
 const App = () => {
   return (
@@ -78,6 +79,12 @@ const App = () => {
               <Register />
           }
         />
+          <Route
+              path="/eventsec"
+              element={
+                <EventSection />
+              }
+            />
          <Route
           path="/login"
           element={

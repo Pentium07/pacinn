@@ -16,24 +16,42 @@ const BookingStatus = () => {
     const [roomType, setRoomType] = useState(location.state?.roomType || localStorage.getItem('roomType') || 'Apartment');
     const [checkInDate, setCheckInDate] = useState(location.state?.checkInDate || localStorage.getItem('checkInDate') || 'N/A');
     const [checkOutDate, setCheckOutDate] = useState(location.state?.checkOutDate || localStorage.getItem('checkOutDate') || 'N/A');
-    const [numberOfGuests, setNumberOfGuests] = useState(location.state?.numberOfGuests || parseInt(localStorage.getItem('numberOfGuests')) || 1);
+    const [numberOfNights, setNumberOfNights] = useState(1);
     const [roomQuantity, setRoomQuantity] = useState(location.state?.roomQuantity || parseInt(localStorage.getItem('roomQuantity')) || 1);
     const [transactionRef, setTransactionRef] = useState(location.state?.trxref || localStorage.getItem('transactionRef') || 'N/A');
     const [totalAmount, setTotalAmount] = useState(location.state?.totalAmount || localStorage.getItem('totalAmount') || 'N/A');
     const [loading, setLoading] = useState(false);
     const passRefs = useRef([]);
 
-    const verifyBooking = async (bookingRef) => {
+    const calculateNights = (checkIn, checkOut) => {
+        try {
+            const checkInDate = new Date(checkIn);
+            const checkOutDate = new Date(checkOut);
+            if (isNaN(checkInDate) || isNaN(checkOutDate)) {
+                return 1;
+            }
+            const diffTime = checkOutDate - checkInDate;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays > 0 ? diffDays : 1;
+        } catch {
+            return 1;
+        }
+    };
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [location]);
+
+    const verifyBooking = async (reference) => {
         const toastId = toast.loading('Verifying booking...');
         setLoading(true);
-        console.log('Starting booking verification:', { bookingRef, API_URL });
+        console.log('Starting booking verification:', { reference, API_URL });
 
         try {
-            if (!bookingRef) {
-                throw new Error('Booking reference is missing.');
+            if (!reference) {
+                throw new Error('Booking or transaction reference is missing.');
             }
 
-            const endpoint = `${API_URL}/api/public/bookings/reference/${bookingRef}`;
+            const endpoint = `${API_URL}/api/public/bookings/reference/${reference}`;
             console.log(`Calling GET verify endpoint: ${endpoint}`);
             const response = await axios.get(endpoint, {
                 headers: { 'Content-Type': 'application/json' },
@@ -43,56 +61,43 @@ const BookingStatus = () => {
             console.log('Booking verification response:', JSON.stringify(response.data, null, 2));
 
             if (response.status === 200 && response.data) {
-                const bookingData = response.data.data;
+                const bookingData = response.data.booking;
+                const transactionData = response.data.transaction;
                 const isSuccess =
                     bookingData.status === 'confirmed' ||
                     bookingData.payment_status === 'paid' ||
-                    bookingData.transactions?.[0]?.status === 'success';
-                const status = isSuccess ? 'success' : bookingData.status || 'failed';
+                    transactionData?.status === 'success';
 
-                setStatus(status);
-                setQrCode(bookingData.qr_code || null); // Note: Postman response doesn't include qr_code
-                setTransactionRef(bookingData.transactions?.[0]?.transaction_ref || transactionRef || 'N/A');
+                setStatus(isSuccess ? 'success' : bookingData.status || 'failed');
+                setQrCode(bookingData.qr_code || null);
+                setBookingId(bookingData.id || bookingId);
+                setTransactionRef(transactionData?.transaction_ref || transactionRef || 'N/A');
                 setTotalAmount(
                     bookingData.total_amount
                         ? parseFloat(bookingData.total_amount).toFixed(2)
-                        : location.state?.totalAmount || localStorage.getItem('totalAmount') || 'N/A'
+                        : transactionData?.amount
+                            ? parseFloat(transactionData.amount / 100).toFixed(2)
+                            : totalAmount
                 );
-                setHotelName(
-                    bookingData.apartment?.name ||
-                    location.state?.hotelName ||
-                    localStorage.getItem('hotelName') || 'Unnamed Apartment'
-                );
+                setHotelName(bookingData.apartment?.name || hotelName);
                 setRoomType(
                     bookingData.booking_type === 'apartment' ? 'Apartment' :
                         bookingData.rooms?.[0]?.type ||
-                        location.state?.roomType ||
-                        localStorage.getItem('roomType') || 'Apartment'
+                        bookingData.booking_rooms?.[0]?.room?.type ||
+                        roomType
                 );
-                setCheckInDate(
-                    bookingData.check_in_date?.split('T')[0] ||
-                    location.state?.checkInDate ||
-                    localStorage.getItem('checkInDate') || 'N/A'
-                );
-                setCheckOutDate(
-                    bookingData.check_out_date?.split('T')[0] ||
-                    location.state?.checkOutDate ||
-                    localStorage.getItem('checkOutDate') || 'N/A'
-                );
-                setNumberOfGuests(
-                    parseInt(bookingData.total_guests) ||
-                    location.state?.numberOfGuests ||
-                    parseInt(localStorage.getItem('numberOfGuests')) || 1
-                );
+                const checkIn = bookingData.check_in_date?.split('T')[0] || checkInDate;
+                const checkOut = bookingData.check_out_date?.split('T')[0] || checkOutDate;
+                setCheckInDate(checkIn);
+                setCheckOutDate(checkOut);
+                setNumberOfNights(calculateNights(checkIn, checkOut));
                 setRoomQuantity(
                     bookingData.booking_type === 'apartment' ? 1 :
                         bookingData.booking_rooms?.length ||
-                        location.state?.roomQuantity ||
-                        parseInt(localStorage.getItem('roomQuantity')) || 1
+                        roomQuantity
                 );
-                setBookingId(bookingData.id || bookingId);
 
-                toast.success(response.data.message || `Booking ${status}`, { id: toastId });
+                toast.success(response.data.message || `Booking ${isSuccess ? 'confirmed' : bookingData.status}`, { id: toastId });
 
                 if (isSuccess) {
                     localStorage.removeItem('pendingBookingId');
@@ -100,7 +105,6 @@ const BookingStatus = () => {
                     localStorage.removeItem('roomType');
                     localStorage.removeItem('checkInDate');
                     localStorage.removeItem('checkOutDate');
-                    localStorage.removeItem('numberOfGuests');
                     localStorage.removeItem('roomQuantity');
                     localStorage.removeItem('totalAmount');
                     localStorage.removeItem('userEmail');
@@ -132,7 +136,7 @@ const BookingStatus = () => {
                 setRoomType(location.state?.roomType || roomType);
                 setCheckInDate(location.state?.checkInDate || checkInDate);
                 setCheckOutDate(location.state?.checkOutDate || checkOutDate);
-                setNumberOfGuests(location.state?.numberOfGuests || numberOfGuests);
+                setNumberOfNights(calculateNights(location.state?.checkInDate || checkInDate, location.state?.checkOutDate || checkOutDate));
                 setRoomQuantity(location.state?.roomQuantity || roomQuantity);
                 toast.info('Booking appears successful based on callback data. Please download your room pass.');
             }
@@ -143,20 +147,30 @@ const BookingStatus = () => {
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        const bookingRef = params.get('booking') || location.state?.bookingId;
-        const trxref = params.get('reference') || location.state?.trxref;
-        const stateBookingId = params.get('booking') || location.state?.bookingId || localStorage.getItem('pendingBookingId');
+        const trxref = params.get('reference') || location.state?.trxref || localStorage.getItem('transactionRef');
+        const bookingRef = params.get('booking') || location.state?.bookingId || localStorage.getItem('pendingBookingId');
 
-        console.log('Initial state and params:', { bookingRef, trxref, stateBookingId, location });
+        console.log('Initial state and params:', {
+            trxref,
+            bookingRef,
+            locationState: location.state,
+            localStorage: {
+                transactionRef: localStorage.getItem('transactionRef'),
+                pendingBookingId: localStorage.getItem('pendingBookingId'),
+            },
+        });
 
-        setBookingId(stateBookingId);
-        setTransactionRef(trxref);
+        setBookingId(bookingRef || trxref || 'N/A');
+        setTransactionRef(trxref || 'N/A');
+        setNumberOfNights(calculateNights(checkInDate, checkOutDate));
 
-        if (bookingRef) {
+        if (trxref) {
+            verifyBooking(trxref);
+        } else if (bookingRef) {
             verifyBooking(bookingRef);
         } else {
             setStatus('failed');
-            toast.error('Missing booking reference. Please try again or contact support.');
+            toast.error('Missing booking or transaction reference. Please try again or contact support.');
             setLoading(false);
         }
     }, [location]);
@@ -360,7 +374,6 @@ const BookingStatus = () => {
                                     : "grid grid-cols-1 md:grid-cols-2 gap-8"
                                     }`}
                             >
-
                                 {Array.from({ length: roomQuantity }).map((_, index) => (
                                     <div key={index} className="flex flex-col items-center">
                                         <div
@@ -389,8 +402,8 @@ const BookingStatus = () => {
                                                             <div className="font-bold text-white">{roomType}</div>
                                                         </div>
                                                         <div>
-                                                            <div className="text-sm text-white/80">Guests</div>
-                                                            <div className="font-bold text-white">{numberOfGuests}</div>
+                                                            <div className="text-sm text-white/80">Nights</div>
+                                                            <div className="font-bold text-white">{numberOfNights}</div>
                                                         </div>
                                                     </div>
                                                     {qrCode && (
@@ -463,7 +476,7 @@ const BookingStatus = () => {
                                 Your booking is being processed. This may take a few moments. You will receive an email with your booking details once confirmed.
                             </p>
                             <button
-                                onClick={() => window.location.reload()}
+                                onClick={() => verifyBooking(transactionRef || bookingId)}
                                 disabled={loading}
                                 className="inline-block bg-[#F0CB46] text-[#000814] py-2 px-6 rounded-lg font-semibold hover:bg-[#CCA000] transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base mb-4"
                             >
@@ -495,7 +508,7 @@ const BookingStatus = () => {
                                 Your booking could not be processed. Please try again or contact support.
                             </p>
                         </div>
-                        {localStorage.getItem('pendingBookingId') && (
+                        {(bookingId || localStorage.getItem('pendingBookingId')) && (
                             <Link
                                 to="/booking"
                                 className="inline-block bg-[#000814] text-[#F0CB46] py-2 px-6 rounded-lg font-semibold hover:bg-[#003566] transition-all duration-300 shadow-md hover:shadow-lg text-sm md:text-base mb-4 glass-effect"

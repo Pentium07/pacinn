@@ -368,7 +368,7 @@ const Bookings = () => {
                       <img 
                         src={`${STORAGE_BASE_URL}/${room.images[0].replace(/^\/storage\//, "")}`}
                         alt={room.room_type}
-                        className="w-full h-48 md:h-72 object-cover"
+                        className="w-full h- md:h-72 object-cover"
                       />
                     ) : (
                       <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
@@ -476,7 +476,7 @@ const Bookings = () => {
                       <img 
                         src={`${STORAGE_BASE_URL}/${apartment.images[0].replace(/^\/storage\//, "")}`}
                         alt={apartment.name}
-                        className="w-full h-48 md:h-72 object-cover"
+                        className="w-full h- md:h-72 object-cover"
                       />
                     ) : (
                       <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
@@ -612,7 +612,7 @@ const Bookings = () => {
                         onClick={() => handleCalendarClick('checkInDate')}
                         className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
                       >
-                        <FaCalendarAlt />
+                        
                       </button>
                     </div>
                     
@@ -631,7 +631,7 @@ const Bookings = () => {
                         onClick={() => handleCalendarClick('checkOutDate')}
                         className="absolute right-3 top-10 text-gray-400 hover:text-tetClr"
                       >
-                        <FaCalendarAlt />
+                        
                       </button>
                     </div>
                   </div>

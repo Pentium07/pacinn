@@ -27,9 +27,6 @@ const Bookings = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
-  // Default fallback image
-  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
-
   useEffect(() => {
     console.log('Bookings component mounted');
     window.scrollTo(0, 0);
@@ -378,11 +375,17 @@ const Bookings = () => {
             rooms.map((room) => (
               <div key={room.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
                 <div className="relative">
-                  <img 
-                    src={Array.isArray(room.images) && room.images.length > 0 ? `${STORAGE_BASE_URL}/${room.images[0]}` : FALLBACK_IMAGE}
-                    alt={room.room_type}
-                    className="w-full h-48 md:h-56 object-cover"
-                  />
+                  {Array.isArray(room.images) && room.images.length > 0 ? (
+                    <img 
+                      src={`${STORAGE_BASE_URL}/${room.images[0].replace(/^\/storage\//, "")}`}
+                      alt={room.room_type}
+                      className="w-full h-48 md:h-72 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
+                      No Image
+                    </div>
+                  )}
                   <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
                     ₦{parseFloat(room.price_per_night || 0).toLocaleString('en-NG')}
                   </div>
@@ -481,11 +484,17 @@ const Bookings = () => {
             apartments.map((apartment) => (
               <div key={apartment.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
                 <div className="relative">
-                  <img 
-                    src={Array.isArray(apartment.images) && apartment.images.length > 0 ? `${STORAGE_BASE_URL}/${apartment.images[0]}` : FALLBACK_IMAGE}
-                    alt={apartment.name}
-                    className="w-full h-48 md:h-56 object-cover"
-                  />
+                  {Array.isArray(apartment.images) && apartment.images.length > 0 ? (
+                    <img 
+                      src={`${STORAGE_BASE_URL}/${apartment.images[0].replace(/^\/storage\//, "")}`}
+                      alt={apartment.name}
+                      className="w-full h-48 md:h-72 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center text-gray-500">
+                      No Image
+                    </div>
+                  )}
                   <div className="absolute top-4 right-4 bg-tetClr text-white py-1 px-3 rounded-full font-semibold text-base">
                     ₦{parseFloat(apartment.price_per_night || 0).toLocaleString('en-NG')}
                   </div>
@@ -530,8 +539,6 @@ const Bookings = () => {
           )}
         </div>
 
-        {/* Room Filters */}
-
       </div>
 
       {/* Booking Modal */}
@@ -564,11 +571,17 @@ const Bookings = () => {
                   </button>
                 </div>
                 
-                <img 
-                  src={Array.isArray(selectedItem.images) && selectedItem.images.length > 0 ? `${STORAGE_BASE_URL}/${selectedItem.images[0]}` : FALLBACK_IMAGE}
-                  alt={bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
-                  className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
-                />
+                {Array.isArray(selectedItem.images) && selectedItem.images.length > 0 ? (
+                  <img 
+                    src={`${STORAGE_BASE_URL}/${selectedItem.images[0].replace(/^\/storage\//, "")}`}
+                    alt={bookingType === 'room' ? selectedItem.room_type : selectedItem.name}
+                    className="w-full h-64 object-cover rounded-lg mb-4 shadow-md"
+                  />
+                ) : (
+                  <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg mb-4 shadow-md">
+                    No Image
+                  </div>
+                )}
                 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -669,18 +682,6 @@ const Bookings = () => {
                       />
                       <FaEnvelope className="absolute right-3 top-10 text-gray-400" />
                     </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-base font-medium text-gray-700 mb-1">Total Guests</label>
-                    <input
-                      type="number"
-                      value={totalGuests}
-                      onChange={(e) => setTotalGuests(Math.max(1, Math.min(selectedItem.max_guests, parseInt(e.target.value) || 1)))}
-                      min="1"
-                      max={selectedItem.max_guests}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tetClr focus:border-tetClr"
-                    />
                   </div>
                   
                   <div className="relative">

@@ -56,22 +56,53 @@ const EventStats = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const endpoint = filterType === 'checked-in' ? 'checked-in' : 'pending';
-      const response = await axios.get(`${API_URL}/api/events/${eventId}/${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
 
-      if (response.status === 200) {
-        const ticketsData = response.data.data || response.data.tickets || [];
-        setTickets(ticketsData);
-        toast.success(`${filterType} tickets loaded successfully`, { id: toastId });
+      let ticketsData = [];
+
+      if (filterType === 'all') {
+        // Fetch both checked-in and pending tickets
+        const [checkedInResponse, pendingResponse] = await Promise.all([
+          axios.get(`${API_URL}/api/events/${eventId}/checked-in`, { headers }),
+          axios.get(`${API_URL}/api/events/${eventId}/pending`, { headers }),
+        ]);
+
+        const checkedInTickets = checkedInResponse.status === 200
+          ? (checkedInResponse.data.data || checkedInResponse.data.tickets || [])
+          : [];
+        const pendingTickets = pendingResponse.status === 200
+          ? (pendingResponse.data.data || pendingResponse.data.tickets || [])
+          : [];
+
+        // Combine tickets and remove duplicates based on ticket ID
+        const combinedTickets = [...checkedInTickets, ...pendingTickets];
+        const uniqueTickets = Array.from(
+          new Map(combinedTickets.map(ticket => [ticket.id, ticket])).values()
+        );
+
+        // Sort by created_at descending (newest first)
+        ticketsData = uniqueTickets.sort((a, b) => 
+          new Date(b.created_at) - new Date(a.created_at)
+        );
       } else {
-        setTickets([]);
-        toast.error('Unexpected response structure', { id: toastId });
+        // Fetch tickets for specific filter (checked-in or pending)
+        const endpoint = filterType === 'checked-in' ? 'checked-in' : 'pending';
+        const response = await axios.get(`${API_URL}/api/events/${eventId}/${endpoint}`, {
+          headers,
+        });
+
+        if (response.status === 200) {
+          ticketsData = response.data.data || response.data.tickets || [];
+        } else {
+          throw new Error('Unexpected response structure');
+        }
       }
+
+      setTickets(ticketsData);
+      toast.success(`${filterType} tickets loaded successfully`, { id: toastId });
     } catch (err) {
       console.error(`Error fetching ${filterType} tickets:`, err.response || err);
       setError(err.response?.data?.message || `Error fetching ${filterType} tickets`);
@@ -93,7 +124,7 @@ const EventStats = () => {
     const token = localStorage.getItem('token');
     if (token) {
       fetchTicketStats();
-      fetchTickets(filter === 'all' ? 'checked-in' : filter);
+      fetchTickets(filter);
     }
   }, [filter]);
 

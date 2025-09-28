@@ -9,7 +9,11 @@ import {
   FaTachometerAlt, 
   FaBars,
   FaTimes,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaBed,
+  FaTicketAlt,
+  FaUsers,
+  FaEnvelope
 } from 'react-icons/fa';
 import assets from '../assets/assests';
 
@@ -23,29 +27,28 @@ const Admin = ({ children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
-const handleLogout = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    await axios.post(
-      `${API_URL}/api/auth/logout`,
-      {},
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,   // 👈 send token
-        },
-        withCredentials: true,
-      }
-    );
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API_URL}/api/auth/logout`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
 
-    toast.success('Logged out successfully');
-    localStorage.removeItem('token'); // Clear stored token
-    navigate('/login');
-  } catch (err) {
-    toast.error(err.response?.data?.message || 'Logout failed');
-  }
-};
-
+      toast.success('Logged out successfully');
+      localStorage.removeItem('token');
+      navigate('/login');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Logout failed');
+    }
+  };
 
   const linkClass =
     'group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-tetClr hover:shadow-sm hover:scale-[1.02]';
@@ -112,7 +115,7 @@ const handleLogout = async () => {
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <FaClipboardList className="text-base" />
+              <FaBed className="text-base" />
               <span className="font-medium">Rooms</span>
             </NavLink>
 
@@ -139,6 +142,17 @@ const handleLogout = async () => {
             </NavLink>
 
             <NavLink
+              to="/admin/purchase"
+              className={({ isActive }) =>
+                `${linkClass} ${isActive ? activeClass : 'text-white'}`
+              }
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaTicketAlt className="text-base" />
+              <span className="font-medium">Purchase</span>
+            </NavLink>
+
+            <NavLink
               to="/admin/scanner"
               className={({ isActive }) =>
                 `${linkClass} ${isActive ? activeClass : 'text-white'}`
@@ -148,6 +162,7 @@ const handleLogout = async () => {
               <FaQrcode className="text-base" />
               <span className="font-medium">Scanner</span>
             </NavLink>
+
             <NavLink
               to="/admin/user"
               className={({ isActive }) =>
@@ -155,9 +170,10 @@ const handleLogout = async () => {
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <FaQrcode className="text-base" />
-              <span className="font-medium">User</span>
+              <FaUsers className="text-base" />
+              <span className="font-medium">Users</span>
             </NavLink>
+
             <NavLink
               to="/admin/subscriber"
               className={({ isActive }) =>
@@ -165,18 +181,8 @@ const handleLogout = async () => {
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <FaQrcode className="text-base" />
-              <span className="font-medium">Subscriber</span>
-            </NavLink>
-            <NavLink
-              to="/admin/history"
-              className={({ isActive }) =>
-                `${linkClass} ${isActive ? activeClass : 'text-white'}`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaQrcode className="text-base" />
-              <span className="font-medium">History</span>
+              <FaEnvelope className="text-base" />
+              <span className="font-medium">Subscribers</span>
             </NavLink>
           </nav>
 

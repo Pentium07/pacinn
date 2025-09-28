@@ -239,7 +239,7 @@ const PaymentStatus = () => {
     .ticket-header {
       background: linear-gradient(to right, rgb(0, 8, 20), rgb(240, 203, 70));
       color: white;
-      padding: 12px;
+      padding: 4px;
       text-align: center;
       font-weight: bold;
       font-size: 1.5rem;
@@ -271,7 +271,7 @@ const PaymentStatus = () => {
       style={{ background: 'linear-gradient(to bottom right, rgb(0, 8, 20), rgb(0, 53, 102), rgb(204, 160, 0))' }}
     >
       <style>{animations}</style>
-      <div className="glass-effect rounded-3xl shadow-2xl w-[90%] md:w-[70%] p-10 mx-auto border border-[#F0CB46]/30">
+      <div className="glass-effect rounded-3xl shadow-2xl w-[90%] md:w-[60%] p-10 mx-auto border border-[#F0CB46]/30">
         {status === 'success' ? (
           <>
             <Confetti
@@ -303,7 +303,7 @@ const PaymentStatus = () => {
               <h1 className="text-4xl md:text-5xl font-bold text-tetClr mb-4">
                 Payment Successful!
               </h1>
-              <h2 className="text-2xl md:text-3xl font-semibold text-white mb-6">{eventName}</h2>
+              <h2 className="text-xl md:text-3xl font-semibold text-white mb-6">{eventName}</h2>
 
               <div className="grid grid-cols-2 gap-6 mb-8 mt-4">
                 <div className="glass-effect p-4 rounded-2xl border border-[#F0CB46]/30">
@@ -326,22 +326,22 @@ const PaymentStatus = () => {
 
                 <div
                   className={`w-full ${ticketQuantity === 1
-                      ? "flex justify-center" // single ticket centered
-                      : "grid grid-cols-1 md:grid-cols-2 gap-8 place-items-center" // multiple tickets in grid
+                    ? "flex justify-center"
+                    : "grid grid-cols-1 md:grid-cols-2 gap-8"
                     }`}
                 >
                   {Array.from({ length: ticketQuantity }).map((_, index) => (
                     <div key={index} className="flex flex-col items-center">
                       <div
                         ref={(el) => (flyerRefs.current[index] = el)}
-                        className="ticket-glass relative p-8 w-[100%] mx-auto"
+                        className="ticket-glass relative py-4 px-8 w-full "
                       >
 
                         <div className="perforation"></div>
                         <div className="perforation-left"></div>
-                        <div className="ticket-header">Ticket</div>
+                        <div className="ticket-header text-sm md:text-base">Ticket</div>
                         <div className="relative z-10">
-                          <h4 className="text-2xl font-bold mb-4 text-center drop-shadow-lg text-white mt-4">{eventName}</h4>
+                          <h4 className="text-xl md:text-2xl font-bold mb-4 text-center drop-shadow-lg text-white mt-4">{eventName}</h4>
                           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-[#F0CB46]/30">
                             {/* <div className="text-center mb-3">
                               <span className="bg-white/30 px-3 py-1 rounded-full text-sm font-semibold text-white">
@@ -357,8 +357,8 @@ const PaymentStatus = () => {
                               {/* <p className="text-xs text-white/80 text-center">Scan QR code at venue</p> */}
                             </div>
                             <div className="mt-4 text-center">
-                              <div className="font-mono text-sm bg-black/20 px-3 py-2 rounded-lg break-all border border-[#CCA000]/30 text-white">
-                                Ref: {transactionRef}
+                              <div className="font-mono text-xs bg-black/20 px-3 py-2 rounded-lg break-all border border-[#CCA000]/30 text-white">
+                                 {transactionRef}
                               </div>
                             </div>
                           </div>

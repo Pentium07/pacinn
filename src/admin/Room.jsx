@@ -204,14 +204,12 @@ const Room = () => {
         formDataToSend.append('address', address);
         formDataToSend.append('price_per_night', parseFloat(price_per_night));
         formDataToSend.append('max_guests', parseInt(max_guests));
-        
-        // Only append new images (File objects)
-        images.forEach((file, index) => {
-          if (file instanceof File) {
-            formDataToSend.append(`images[${index}]`, file);
-          }
+
+        // Append images as 'images[]'
+        images.forEach((file) => {
+          formDataToSend.append('images[]', file);
         });
-        
+
         formDataToSend.append('is_available', is_available ? '1' : '0');
 
         if (editingApartment) {
@@ -332,14 +330,12 @@ const Room = () => {
         amenities.forEach((amenity, index) => {
           formDataToSend.append(`amenities[${index}]`, amenity);
         });
-        
-        // Only append new images (File objects)
-        images.forEach((file, index) => {
-          if (file instanceof File) {
-            formDataToSend.append(`images[${index}]`, file);
-          }
+
+        // Append images as 'images[]'
+        images.forEach((file) => {
+          formDataToSend.append('images[]', file);
         });
-        
+
         formDataToSend.append('is_available', is_available ? '1' : '0');
 
         if (editingRoom) {
@@ -604,7 +600,7 @@ const Room = () => {
         {/* Header */}
         <div className="mb-8 md:mb-10">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-tetClr">
-             Room Management
+            Room Management
           </h1>
           <p className="text-xs md:text-sm text-gray-600 mt-2 flex items-center gap-2">
             <span className="w-2 h-2 bg-tetClr rounded-full animate-pulse"></span>
@@ -663,19 +659,23 @@ const Room = () => {
                   <tbody>
                     {apartments.map((apartment) => (
                       <tr key={apartment.id} className="border-b border-gray-200 hover:bg-tetClr/20 transition-colors duration-200">
-                        <td className="p-6">
-                          {apartment.images && apartment.images.length > 0 && typeof apartment.images[0] === 'string' ? (
+                        {console.log("Apartment images:", apartment.images)}
+
+                        <td className="px-8 md:px-6 py-4 whitespace-nowrap md:py-4">
+                          {Array.isArray(apartment.images) && apartment.images.length > 0 ? (
                             <img
-                              src={`${STORAGE_BASE_URL}/${apartment.images[0]}`}
+                              src={`${STORAGE_BASE_URL}/${apartment.images[0].replace(/^\/storage\//, "")}`}
                               alt={apartment.name}
-                              className="w-10 h-10 rounded-md object-cover shadow-sm"
+                              className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover shadow-sm"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-md bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-md bg-gray-200 flex items-center justify-center text-gray-500 text-xs md:text-sm">
                               No Image
                             </div>
                           )}
                         </td>
+
+
                         <td className="p-6 font-medium text-gray-900">{apartment.name}</td>
                         <td className="p-6 text-gray-600 max-w-[120px] md:max-w-[200px] truncate">{apartment.description}</td>
                         <td className="p-6 font-semibold text-tetClr">₦{apartment.price_per_night?.toLocaleString()}</td>
@@ -763,19 +763,20 @@ const Room = () => {
                   <tbody>
                     {rooms.map((room) => (
                       <tr key={room.id} className="border-b border-gray-200 hover:bg-tetClr/20 transition-colors duration-200">
-                        <td className="p-6">
-                          {room.images && room.images.length > 0 && typeof room.images[0] === 'string' ? (
+                        <td className="px-8 md:px-6 py-4 whitespace-nowrap md:py-4">
+                          {Array.isArray(room.images) && room.images.length > 0 && typeof room.images[0] === "string" ? (
                             <img
-                              src={`${STORAGE_BASE_URL}/${room.images[0]}`}
+                              src={`${STORAGE_BASE_URL}/${room.images[0].replace(/^\/storage\//, "")}`}
                               alt={room.room_type}
-                              className="w-10 h-10 rounded-md object-cover shadow-sm"
+                              className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover shadow-sm"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-md bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-md bg-gray-200 flex items-center justify-center text-gray-500 text-xs md:text-sm">
                               No Image
                             </div>
                           )}
                         </td>
+
                         <td className="p-6 font-medium text-gray-900">{room.room_number}</td>
                         <td className="p-6 font-medium text-gray-900">{room.room_type}</td>
                         <td className="p-6 text-gray-600 max-w-[120px] md:max-w-[200px] truncate">{room.description}</td>
@@ -937,10 +938,15 @@ const Room = () => {
                     {apartmentFormData.images.map((image, index) => (
                       <div key={index} className="relative">
                         <img
-                          src={image instanceof File ? URL.createObjectURL(image) : `${STORAGE_BASE_URL}/${image}`}
+                          src={
+                            image instanceof File
+                              ? URL.createObjectURL(image)
+                              : `${STORAGE_BASE_URL}/${image.replace(/^\/storage\//, "")}`
+                          }
                           alt={`Preview ${index}`}
                           className="w-16 h-16 rounded-md object-cover shadow-sm"
                         />
+
                       </div>
                     ))}
                   </div>

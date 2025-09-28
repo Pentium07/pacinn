@@ -13,7 +13,8 @@ const Ticket = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showToast, setShowToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Tracks submission to disable Pay Now after click
+  const [isButtonLoading, setIsButtonLoading] = useState({}); // Tracks loading state for each button
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -118,11 +119,30 @@ const Ticket = () => {
   }, [location]);
 
   const handleBuy = (event) => {
-    if (event.canPay) {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-      setSelectedEvent(event);
+    if (event.canPay && !isSubmitting) {
+      setIsSubmitting(true); // Disable further clicks
+      setIsButtonLoading(prev => ({ ...prev, [`buy_${event.id}`]: true }));
+      setTimeout(() => {
+        setSelectedEvent(event);
+        setIsButtonLoading(prev => ({ ...prev, [`buy_${event.id}`]: false }));
+        setIsSubmitting(false); // Re-enable after form opens
+      }, 1000); // Simulate loading for 1 second
     }
+  };
+
+  const handleQuantityChange = (increment) => {
+    const buttonKey = increment ? 'increment' : 'decrement';
+    setIsButtonLoading(prev => ({ ...prev, [buttonKey]: true }));
+    setTimeout(() => {
+      if (increment) {
+        const selectedTicket = selectedEvent.tickets.find(t => t.type === formik.values.ticket_type);
+        const maxQuantity = selectedTicket ? selectedTicket.quantity : 1;
+        formik.setFieldValue('quantity', formik.values.quantity < maxQuantity ? formik.values.quantity + 1 : maxQuantity);
+      } else {
+        formik.setFieldValue('quantity', formik.values.quantity > 1 ? formik.values.quantity - 1 : 1);
+      }
+      setIsButtonLoading(prev => ({ ...prev, [buttonKey]: false }));
+    }, 500); // Simulate loading for 0.5 seconds
   };
 
   const formik = useFormik({
@@ -145,8 +165,9 @@ const Ticket = () => {
         .required('Quantity is required'),
     }),
     onSubmit: async (values, { resetForm }) => {
-      if (!selectedEvent) return;
-      setShowToast(true);
+      if (!selectedEvent || isSubmitting) return;
+      setIsSubmitting(true); // Disable Pay Now button after click
+      setIsButtonLoading(prev => ({ ...prev, pay: true }));
       try {
         localStorage.setItem('eventName', selectedEvent.name);
         localStorage.setItem('ticketQuantity', values.quantity.toString());
@@ -214,7 +235,8 @@ const Ticket = () => {
           replace: true,
         });
       } finally {
-        setShowToast(false);
+        setIsButtonLoading(prev => ({ ...prev, pay: false }));
+        setIsSubmitting(false); // Re-enable Pay Now after processing
       }
     },
     enableReinitialize: true,
@@ -287,10 +309,20 @@ const Ticket = () => {
                   <div className="mt-4">
                     <button
                       onClick={() => handleBuy(event)}
-                      disabled={!event.canPay}
-                      className={`w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/90 transition-all duration-300 shadow-md ${!event.canPay ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={!event.canPay || isSubmitting || isButtonLoading[`buy_${event.id}`]}
+                      className={`w-full bg-tetClr text-white py-3 rounded-lg font-semibold hover:bg-tetClr/90 transition-all duration-300 shadow-md ${!event.canPay || isSubmitting || isButtonLoading[`buy_${event.id}`] ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      Buy Now
+                      {isButtonLoading[`buy_${event.id}`] ? (
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Loading...
+                        </span>
+                      ) : (
+                        'Buy Now'
+                      )}
                     </button>
                   </div>
                 </div>
@@ -299,12 +331,6 @@ const Ticket = () => {
           </div>
         )}
       </div>
-
-      {showToast && (
-        <div className="fixed top-4 right-4 bg-tetClr text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
-          Processing your request...
-        </div>
-      )}
 
       {selectedEvent && (
         <div className="fixed inset-0 bg-black/90 flex items-start justify-center p-4 pt-8 z-50 overflow-y-auto">
@@ -316,6 +342,7 @@ const Ticket = () => {
                   onClick={() => {
                     setSelectedEvent(null);
                     formik.resetForm();
+                    setIsSubmitting(false); // Reset submitting state when closing form
                   }}
                   className="text-gray-500 hover:text-gray-700 p-2 rounded-full transition-colors"
                 >
@@ -427,22 +454,40 @@ const Ticket = () => {
                   <div className="flex items-center space-x-4">
                     <button
                       type="button"
-                      onClick={() => formik.setFieldValue('quantity', formik.values.quantity > 1 ? formik.values.quantity - 1 : 1)}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all"
+                      onClick={() => handleQuantityChange(false)}
+                      disabled={isButtonLoading.decrement}
+                      className={`bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all ${isButtonLoading.decrement ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      -
+                      {isButtonLoading.decrement ? (
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Loading...
+                        </span>
+                      ) : (
+                        '-'
+                      )}
                     </button>
                     <span className="text-base sm:text-lg font-semibold">{formik.values.quantity}</span>
                     <button
                       type="button"
-                      onClick={() => {
-                        const selectedTicket = selectedEvent.tickets.find(t => t.type === formik.values.ticket_type);
-                        const maxQuantity = selectedTicket ? selectedTicket.quantity : 1;
-                        formik.setFieldValue('quantity', formik.values.quantity < maxQuantity ? formik.values.quantity + 1 : maxQuantity);
-                      }}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all"
+                      onClick={() => handleQuantityChange(true)}
+                      disabled={isButtonLoading.increment}
+                      className={`bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all ${isButtonLoading.increment ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      +
+                      {isButtonLoading.increment ? (
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Loading...
+                        </span>
+                      ) : (
+                        '+'
+                      )}
                     </button>
                   </div>
                   {formik.touched.quantity && formik.errors.quantity && (
@@ -479,10 +524,20 @@ const Ticket = () => {
                 <button
                   type="button"
                   onClick={formik.handleSubmit}
-                  disabled={!formik.isValid || !selectedEvent || !selectedEvent.canPay}
-                  className={`w-full bg-pryClr text-white py-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg ${!formik.isValid || !selectedEvent || !selectedEvent.canPay ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={isSubmitting || isButtonLoading.pay || !selectedEvent || !selectedEvent.canPay}
+                  className={`w-full bg-pryClr text-white py-3 rounded-lg font-semibold hover:bg-pryClr/90 transition-all duration-300 shadow-md hover:shadow-lg ${isSubmitting || isButtonLoading.pay || !selectedEvent || !selectedEvent.canPay ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Pay Now
+                  {isButtonLoading.pay ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Loading...
+                    </span>
+                  ) : (
+                    'Pay Now'
+                  )}
                 </button>
               </div>
 

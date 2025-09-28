@@ -16,8 +16,9 @@ import User from './admin/User';
 import PaymentStatus from './pages/PaymentStatus';
 import EventStats from './admin/EventStats';
 import Subscriber from './admin/Subscriber';
-import History from './admin/History';
 import Booking from './admin/Booking';
+import Purchase from './admin/Purchase';
+import BookingStatus from './pages/BookingStatus';
 
 const App = () => {
   return (
@@ -63,6 +64,14 @@ const App = () => {
             </Mode>
           }
         />
+        <Route
+          path="/booking-status"
+          element={
+            <Mode>
+              <BookingStatus />
+            </Mode>
+          }
+        />
          <Route
           path="/register"
           element={
@@ -84,11 +93,11 @@ const App = () => {
         <Route path="/admin/room" element={<Admin><Room /></Admin>} />
         <Route path="/admin/booking" element={<Admin><Booking /></Admin>} />
         <Route path="/admin/event" element={<Admin><Event /></Admin>} />
+        <Route path="/admin/purchase" element={<Admin><Purchase /></Admin>} />
         <Route path="/admin/scanner" element={<Admin><Scanner /></Admin>} />
         <Route path="/admin/user" element={<Admin><User /></Admin>} />
         <Route path="/event-stats/:eventId" element={<Admin><EventStats /></Admin>} />
         <Route path="/admin/subscriber" element={<Admin><Subscriber /></Admin>} />
-        <Route path="/admin/history" element={<Admin><History /></Admin>} />
 
 
         {/* </Routes> */}

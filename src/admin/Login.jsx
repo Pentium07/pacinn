@@ -56,7 +56,13 @@ const Login = () => {
         }
 
         // Navigate based on role
-        navigate(role === 'admin' ? '/admin/dashboard' : '/admin/scanner');
+        let redirectPath = '/admin/scanner';
+        if (role === 'admin') {
+          redirectPath = '/admin/dashboard';
+        } else if (role === 'receptionist') {
+          redirectPath = '/admin/room';
+        }
+        navigate(redirectPath);
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
@@ -76,7 +82,7 @@ const Login = () => {
       {/* Overlay */}
       <div className="absolute inset-0 bg-tetClr/50 z-10"></div>
       
-      <div className="relative w-[90%] md:w-[70%] lg:w-[50%] bg-white rounded-2xl shadow-2xl p-6 md:p-12 z-20">
+      <div className="relative w-[90%] md:[70%] lg:w-[50%] bg-white rounded-2xl shadow-2xl p-6 md:p-12 z-20">
         <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center text-tetClr mb-4 md:mb-6 lg:mb-8">Sign In</h2>
         <Formik
           initialValues={initialValues}

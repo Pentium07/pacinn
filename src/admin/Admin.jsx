@@ -29,10 +29,12 @@ const Admin = ({ children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Redirect users from /admin/dashboard to /admin/scanner
+  // Redirect based on role
   useEffect(() => {
     if (userRole === 'user' && location.pathname === '/admin/dashboard') {
       navigate('/admin/scanner');
+    } else if (userRole === 'receptionist' && !['/admin/room', '/admin/booking'].includes(location.pathname)) {
+      navigate('/admin/room');
     }
   }, [userRole, location.pathname, navigate]);
 
@@ -63,8 +65,8 @@ const Admin = ({ children }) => {
   // Navigation links with role-based access
   const navLinks = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: <FaTachometerAlt className="text-base" />, roles: ['admin'] },
-    { path: '/admin/room', label: 'Rooms', icon: <FaBed className="text-base" />, roles: ['admin'] },
-    { path: '/admin/booking', label: 'Bookings', icon: <FaClipboardList className="text-base" />, roles: ['admin'] },
+    { path: '/admin/room', label: 'Rooms', icon: <FaBed className="text-base" />, roles: ['admin', 'receptionist'] },
+    { path: '/admin/booking', label: 'Bookings', icon: <FaClipboardList className="text-base" />, roles: ['admin', 'receptionist'] },
     { path: '/admin/event', label: 'Events', icon: <FaCalendarAlt className="text-base" />, roles: ['admin'] },
     { path: '/admin/purchase', label: 'Purchase', icon: <FaTicketAlt className="text-base" />, roles: ['admin', 'user'] },
     { path: '/admin/scanner', label: 'Scanner', icon: <FaQrcode className="text-base" />, roles: ['admin', 'user'] },
@@ -121,7 +123,7 @@ const Admin = ({ children }) => {
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+          <nav className="flex-1 px-4 py-6 space-y-2 space-y-auto">
             {filteredNavLinks.map((link, index) => (
               <NavLink
                 key={index}

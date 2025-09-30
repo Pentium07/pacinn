@@ -311,6 +311,12 @@ const User = () => {
     };
   }, [viewModal, roleModal, passwordModal]);
 
+// Define all roles your system should support
+const availableRoles = ["admin", "user", "receptionist"];
+
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-teal-50 py-12 ">
       <div className="w-[90%] mx-auto ">
@@ -358,9 +364,8 @@ const User = () => {
                       <td className="px-4 py-4 md:px-6">{user.role}</td>
                       <td className="px-4 py-4 md:px-6">
                         <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                            user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}
                         >
                           {user.status === 'active' ? 'Active' : 'Inactive'}
                         </span>
@@ -515,9 +520,13 @@ const User = () => {
                     className="w-full mt-2 p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-tetClr"
                   >
                     <option value="">Select a role</option>
-                    <option value="admin">Admin</option>
-                    <option value="user">User</option>
+                    {availableRoles.map((role) => (
+                      <option key={role} value={role}>
+                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                      </option>
+                    ))}
                   </select>
+
                 </div>
                 <button
                   onClick={() => changeUserRole(selectedUserId)}

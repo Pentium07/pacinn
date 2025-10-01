@@ -69,10 +69,23 @@ const Dashboard = () => {
         withCredentials: true,
       });
       const transactions = response.data.data?.data || [];
-      const totalAmount = transactions.reduce((sum, tx) => sum + parseFloat(tx.purchase?.total_amount || 0), 0);
-      const totalTickets = transactions.reduce((sum, tx) => sum + Number(tx.purchase?.quantity || 0), 0);
+
+      // filter only successful transactions
+      const successfulTransactions = transactions.filter(tx => tx.status === "success");
+
+      const totalAmount = successfulTransactions.reduce(
+        (sum, tx) => sum + parseFloat(tx.purchase?.total_amount || 0),
+        0
+      );
+
+      const totalTickets = successfulTransactions.reduce(
+        (sum, tx) => sum + Number(tx.purchase?.quantity || 0),
+        0
+      );
+
       setEventRevenue(totalAmount);
       setTotalTickets(totalTickets);
+
     } catch (error) {
       console.error('Error fetching event data:', error.response || error);
       setError('Failed to fetch event data');

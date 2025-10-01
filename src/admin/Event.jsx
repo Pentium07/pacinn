@@ -115,7 +115,7 @@ const Event = () => {
 
       if (response.status === 200) {
         let fetchedTransactions = response.data.data.data || [];
-        
+
         // Client-side filtering as a fallback for status and date
         fetchedTransactions = fetchedTransactions.filter((tx) => {
           const matchesStatus = statusFilter ? tx.status === statusFilter : true;
@@ -269,12 +269,12 @@ const Event = () => {
   const formatDate = (dateString) => {
     return dateString
       ? new Date(dateString).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
       : 'N/A';
   };
 
@@ -297,11 +297,21 @@ const Event = () => {
     };
   }, [showModal, viewModal, isModalOpen]);
 
-const totalTickets = transactionHistory.reduce((sum, transaction) => {
-  const qty = Number(transaction?.purchase?.quantity) || 0;
-  return sum + qty;
-}, 0);
-  const totalAmount = transactionHistory.reduce((sum, transaction) => sum + parseFloat(transaction.purchase.total_amount), 0);
+  // filter only successful transactions
+  const successfulTransactions = transactionHistory.filter(
+    (transaction) => transaction.status === "success"
+  );
+
+  const totalTickets = successfulTransactions.reduce((sum, transaction) => {
+    const qty = Number(transaction?.purchase?.quantity) || 0;
+    return sum + qty;
+  }, 0);
+
+  const totalAmount = successfulTransactions.reduce(
+    (sum, transaction) => sum + parseFloat(transaction.purchase?.total_amount || 0),
+    0
+  );
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -448,10 +458,10 @@ const totalTickets = transactionHistory.reduce((sum, transaction) => {
       end_date: event.end_date ? event.end_date.split('T')[0] : '',
       tickets: event.tickets && Array.isArray(event.tickets) && event.tickets.length > 0
         ? event.tickets.map(ticket => ({
-            type: ticket.type || '',
-            price: ticket.price || '',
-            quantity: ticket.quantity || '',
-          }))
+          type: ticket.type || '',
+          price: ticket.price || '',
+          quantity: ticket.quantity || '',
+        }))
         : [{ type: '', price: '', quantity: '' }],
       image: event.image || null,
     });
@@ -1076,11 +1086,10 @@ const totalTickets = transactionHistory.reduce((sum, transaction) => {
                     >
                       <td className="p-6 whitespace-nowrap">
                         <span
-                          className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                            transaction.status === 'success'
+                          className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${transaction.status === 'success'
                               ? 'bg-green-100 text-green-800'
                               : 'bg-yellow-100 text-yellow-800'
-                          }`}
+                            }`}
                         >
                           {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
                         </span>
@@ -1141,11 +1150,10 @@ const totalTickets = transactionHistory.reduce((sum, transaction) => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handlePageChange(pagination.prev_page_url)}
                   disabled={!pagination.prev_page_url}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm ${
-                    pagination.prev_page_url
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm ${pagination.prev_page_url
                       ? 'bg-pryClr text-white hover:bg-pryClr/90'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  } transition-all duration-300`}
+                    } transition-all duration-300`}
                 >
                   <FaArrowLeft />
                 </motion.button>
@@ -1157,11 +1165,10 @@ const totalTickets = transactionHistory.reduce((sum, transaction) => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handlePageChange(link.url)}
-                      className={`px-4 py-2 rounded-lg font-semibold text-sm ${
-                        link.active
+                      className={`px-4 py-2 rounded-lg font-semibold text-sm ${link.active
                           ? 'bg-pryClr text-white'
                           : 'bg-white text-gray-600 border border-secClr hover:bg-tetClr/10'
-                      } transition-all duration-300`}
+                        } transition-all duration-300`}
                     >
                       {link.label}
                     </motion.button>
@@ -1171,11 +1178,10 @@ const totalTickets = transactionHistory.reduce((sum, transaction) => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handlePageChange(pagination.next_page_url)}
                   disabled={!pagination.next_page_url}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm ${
-                    pagination.next_page_url
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm ${pagination.next_page_url
                       ? 'bg-pryClr text-white hover:bg-pryClr/90'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  } transition-all duration-300`}
+                    } transition-all duration-300`}
                 >
                   <FaArrowRight />
                 </motion.button>
@@ -1219,11 +1225,10 @@ const totalTickets = transactionHistory.reduce((sum, transaction) => {
                     <p>
                       <strong className="font-semibold text-gray-800">Status:</strong>{' '}
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          selectedTransaction.status === 'success'
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedTransaction.status === 'success'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-yellow-100 text-yellow-800'
-                        }`}
+                          }`}
                       >
                         {selectedTransaction.status.charAt(0).toUpperCase() + selectedTransaction.status.slice(1)}
                       </span>

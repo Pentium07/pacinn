@@ -327,7 +327,7 @@ const changeImage = (id, type, direction) => {
             className="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-pryClr/70 bg-gradient-to-r from-pryClr via-pryClr/70 to-pryClr/20"></div>
+          <div className="absolute inset-0 bg-pryClr/50 bg-gradient-to-r from-pryClr via-pryClr/50 to-pryClr/20"></div>
           <div className="relative z-10 w-[90%] mx-auto text-center animate-fadeIn flex flex-col gap-4 md:gap-8 mt-8">
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white">
               Book Your <span className="text-secClr">Stay</span>
@@ -339,7 +339,7 @@ const changeImage = (id, type, direction) => {
         </div>
 
         <div className="w-full py-12 md:py-20 bg-gradient-to-b from-white to-teal-50">
-          <div className="w-[90%] mx-auto max-w-7xl">
+          <div className="w-[90%] mx-auto">
             <div className="text-center mb-10 md:mb-12">
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-trdClr tracking-tight">Luxury Accommodations</h1>
               <p className="mt-4 text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">

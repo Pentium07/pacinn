@@ -120,8 +120,16 @@ const Dashboard = () => {
         headers: getAuthHeaders(),
         withCredentials: true,
       });
+
       const fetchedTransactions = response.data.data?.data || [];
-      setTransactions(fetchedTransactions.slice(0, 3));
+
+      // ✅ Only include successful transactions
+      const successfulTransactions = fetchedTransactions.filter(
+        (tx) => tx.status === "success"
+      );
+
+      // ✅ Limit to the latest 3 successful transactions
+      setTransactions(successfulTransactions.slice(0, 3));
     } catch (error) {
       console.error('Error fetching transactions:', error.response || error);
       setError('Failed to fetch transactions');
@@ -129,6 +137,7 @@ const Dashboard = () => {
       setIsTransactionsLoading(false);
     }
   };
+
 
   useEffect(() => {
     const fetchInitialData = async () => {

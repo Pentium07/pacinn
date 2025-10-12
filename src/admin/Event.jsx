@@ -1087,8 +1087,8 @@ const Event = () => {
                       <td className="p-6 whitespace-nowrap">
                         <span
                           className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${transaction.status === 'success'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
                             }`}
                         >
                           {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
@@ -1151,8 +1151,8 @@ const Event = () => {
                   onClick={() => handlePageChange(pagination.prev_page_url)}
                   disabled={!pagination.prev_page_url}
                   className={`px-4 py-2 rounded-lg font-semibold text-sm ${pagination.prev_page_url
-                      ? 'bg-pryClr text-white hover:bg-pryClr/90'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-pryClr text-white hover:bg-pryClr/90'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     } transition-all duration-300`}
                 >
                   <FaArrowLeft />
@@ -1166,8 +1166,8 @@ const Event = () => {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handlePageChange(link.url)}
                       className={`px-4 py-2 rounded-lg font-semibold text-sm ${link.active
-                          ? 'bg-pryClr text-white'
-                          : 'bg-white text-gray-600 border border-secClr hover:bg-tetClr/10'
+                        ? 'bg-pryClr text-white'
+                        : 'bg-white text-gray-600 border border-secClr hover:bg-tetClr/10'
                         } transition-all duration-300`}
                     >
                       {link.label}
@@ -1179,8 +1179,8 @@ const Event = () => {
                   onClick={() => handlePageChange(pagination.next_page_url)}
                   disabled={!pagination.next_page_url}
                   className={`px-4 py-2 rounded-lg font-semibold text-sm ${pagination.next_page_url
-                      ? 'bg-pryClr text-white hover:bg-pryClr/90'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-pryClr text-white hover:bg-pryClr/90'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     } transition-all duration-300`}
                 >
                   <FaArrowRight />
@@ -1225,14 +1225,24 @@ const Event = () => {
                     <p>
                       <strong className="font-semibold text-gray-800">Status:</strong>{' '}
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedTransaction.status === 'success'
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          (selectedTransaction.status || '').toLowerCase() === 'success'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-yellow-100 text-yellow-800'
-                          }`}
+                        }`}
                       >
-                        {selectedTransaction.status.charAt(0).toUpperCase() + selectedTransaction.status.slice(1)}
+                        {selectedTransaction.status
+                          ? selectedTransaction.status.charAt(0).toUpperCase() + selectedTransaction.status.slice(1)
+                          : 'Unknown'}
                       </span>
                     </p>
+                    {selectedTransaction.paystack_response && selectedTransaction.paystack_response.data && selectedTransaction.paystack_response.data.channel && (
+                      <p>
+                        <strong className="font-semibold text-gray-800">Payment Method:</strong>{' '}
+                        {selectedTransaction.paystack_response.data.channel.charAt(0).toUpperCase() +
+                          selectedTransaction.paystack_response.data.channel.slice(1)}
+                      </p>
+                    )}
                     <p>
                       <strong className="font-semibold text-gray-800">Reference Number:</strong> {selectedTransaction.ref_no}
                     </p>
@@ -1273,13 +1283,6 @@ const Event = () => {
                       <p>
                         <strong className="font-semibold text-gray-800">Checked In At:</strong>{' '}
                         {formatDate(selectedTransaction.purchase.checked_in_at)}
-                      </p>
-                    )}
-                    {selectedTransaction.paystack_response && (
-                      <p>
-                        <strong className="font-semibold text-gray-800">Payment Method:</strong>{' '}
-                        {selectedTransaction.paystack_response.data.channel.charAt(0).toUpperCase() +
-                          selectedTransaction.paystack_response.data.channel.slice(1)}
                       </p>
                     )}
                   </div>

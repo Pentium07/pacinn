@@ -32,7 +32,7 @@ const Contact = () => {
 
       {/* Contact Section */}
       <div className="w-full py-12 md:py-20 bg-gradient-to-b from-white to-teal-50">
-        <div className="w-[90%] mx-auto w-full">
+        <div className="w-[90%] mx-auto">
           <div className="text-center mb-10 md:mb-12">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-trdClr tracking-tight">
               Get in Touch

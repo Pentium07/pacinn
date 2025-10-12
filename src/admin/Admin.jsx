@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { 
-  FaClipboardList, 
-  FaCalendarAlt, 
-  FaQrcode, 
-  FaTachometerAlt, 
+import {
+  FaClipboardList,
+  FaCalendarAlt,
+  FaQrcode,
+  FaTachometerAlt,
   FaBars,
   FaTimes,
   FaSignOutAlt,
@@ -94,15 +94,14 @@ const Admin = ({ children }) => {
         </button>
       </div>
 
-      {/* Sidebar */}
       <aside
         className={`
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          fixed inset-y-0 left-0 z-50 w-full lg:w-72 h-screen bg-tetClr shadow-lg transform transition-transform duration-300 ease-in-out
-          lg:translate-x-0
-        `}
+    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+    fixed inset-y-0 left-0 z-50 w-full lg:w-72 h-screen bg-tetClr shadow-lg transform transition-transform duration-300 ease-in-out
+    lg:translate-x-0
+  `}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-y-auto [&::-webkit-scrollbar]:hidden">
           {/* Sidebar Header (mobile only) */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between lg:hidden">
             <h1 className="text-lg font-bold text-white">Admin Panel</h1>
@@ -123,7 +122,7 @@ const Admin = ({ children }) => {
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 px-4 py-6 space-y-2 space-y-auto">
+          <nav className="flex-1 px-4 py-6 space-y-2">
             {filteredNavLinks.map((link, index) => (
               <NavLink
                 key={index}
@@ -141,7 +140,7 @@ const Admin = ({ children }) => {
 
           {/* Logout */}
           <div className="p-4 border-t border-gray-200">
-            <button 
+            <button
               onClick={handleLogout}
               className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-white hover:bg-red-100 hover:text-red-600 transition-all duration-200"
             >
@@ -151,6 +150,7 @@ const Admin = ({ children }) => {
           </div>
         </div>
       </aside>
+
 
       {/* Main content */}
       <div className="pt-16 lg:pl-72 lg:pt-0">

@@ -36,17 +36,49 @@ const Booking = () => {
   const fetchStats = async () => {
     setIsStatsLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/api/bookings/stats`, {
+      const response = await axios.get(`${API_URL}/api/bookings`, {
         headers: getAuthHeaders(),
         withCredentials: true,
       });
-      setStats(response.data.data);
+
+      if (response.status === 200) {
+        const allBookings = response.data.data.data || [];
+
+        // Filter successful (paid) bookings only
+        const successfulBookings = allBookings.filter(
+          (b) => b.payment_status === 'paid'
+        );
+
+        // Compute stats based on successful ones
+        const totalRevenue = successfulBookings.reduce(
+          (sum, b) => sum + (Number(b.total_amount) || 0),
+          0
+        );
+
+        setStats({
+          total_bookings: successfulBookings.length,
+          confirmed_bookings: successfulBookings.filter(
+            (b) => b.status === 'confirmed'
+          ).length,
+          checked_in: successfulBookings.filter(
+            (b) => b.status === 'checked_in'
+          ).length,
+          checked_out: successfulBookings.filter(
+            (b) => b.status === 'checked_out'
+          ).length,
+          total_revenue: totalRevenue,
+          pending_payment: allBookings.filter(
+            (b) => b.payment_status === 'unpaid'
+          ).length,
+        });
+      }
     } catch (error) {
       console.error('Error fetching booking stats:', error.response || error);
     } finally {
       setIsStatsLoading(false);
     }
   };
+
 
   const fetchBookings = async (params = {}, pageUrl = `${API_URL}/api/bookings`) => {
     setIsTableLoading(true);
@@ -448,11 +480,10 @@ const Booking = () => {
                     <td className="p-6 whitespace-nowrap text-sm text-gray-600">{booking.booking_type}</td>
                     <td className="p-6 whitespace-nowrap">
                       <span
-                        className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          booking.payment_status === 'paid'
+                        className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${booking.payment_status === 'paid'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
-                        }`}
+                          }`}
                       >
                         {booking.payment_status.charAt(0).toUpperCase() + booking.payment_status.slice(1)}
                       </span>
@@ -514,11 +545,10 @@ const Booking = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handlePageChange(pagination.prev_page_url)}
                 disabled={!pagination.prev_page_url}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm ${
-                  pagination.prev_page_url
+                className={`px-4 py-2 rounded-lg font-semibold text-sm ${pagination.prev_page_url
                     ? 'bg-pryClr text-white hover:bg-pryClr/90'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                } transition-all duration-300`}
+                  } transition-all duration-300`}
               >
                 <FaArrowLeft />
               </motion.button>
@@ -530,11 +560,10 @@ const Booking = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handlePageChange(link.url)}
-                    className={`px-4 py-2 rounded-lg font-semibold text-sm ${
-                      link.active
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm ${link.active
                         ? 'bg-pryClr text-white'
                         : 'bg-white text-gray-600 border border-secClr hover:bg-tetClr/10'
-                    } transition-all duration-300`}
+                      } transition-all duration-300`}
                   >
                     {link.label}
                   </motion.button>
@@ -544,11 +573,10 @@ const Booking = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handlePageChange(pagination.next_page_url)}
                 disabled={!pagination.next_page_url}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm ${
-                  pagination.next_page_url
+                className={`px-4 py-2 rounded-lg font-semibold text-sm ${pagination.next_page_url
                     ? 'bg-pryClr text-white hover:bg-pryClr/90'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                } transition-all duration-300`}
+                  } transition-all duration-300`}
               >
                 <FaArrowRight />
               </motion.button>
@@ -617,11 +645,10 @@ const Booking = () => {
                   <p>
                     <strong className="font-semibold text-gray-800">Status:</strong>{' '}
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        selectedBooking.status === 'confirmed'
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedBooking.status === 'confirmed'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
-                      }`}
+                        }`}
                     >
                       {selectedBooking.status.charAt(0).toUpperCase() + selectedBooking.status.slice(1)}
                     </span>
@@ -629,11 +656,10 @@ const Booking = () => {
                   <p>
                     <strong className="font-semibold text-gray-800">Payment Status:</strong>{' '}
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        selectedBooking.payment_status === 'paid'
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedBooking.payment_status === 'paid'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                      }`}
+                        }`}
                     >
                       {selectedBooking.payment_status.charAt(0).toUpperCase() + selectedBooking.payment_status.slice(1)}
                     </span>
@@ -669,11 +695,10 @@ const Booking = () => {
                           <p>
                             <strong className="font-semibold text-gray-800">Status:</strong>{' '}
                             <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                tx.status === 'success'
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${tx.status === 'success'
                                   ? 'bg-green-100 text-green-800'
                                   : 'bg-yellow-100 text-yellow-800'
-                              }`}
+                                }`}
                             >
                               {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                             </span>

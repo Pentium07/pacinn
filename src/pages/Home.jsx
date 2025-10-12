@@ -171,7 +171,7 @@ const Home = () => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 </div>
-                <h3 className="relative text-xl md:text-2xl font-bold mb-4 tracking-wide drop-shadow-lg">
+                <h3 className="relative text-2xl md:text-3xl font-bold mb-4 tracking-wide drop-shadow-lg">
                   {card.title}
                 </h3>
                 <p className="relative text-sm md:text-base leading-6 opacity-90 max-w-md drop-shadow-md">

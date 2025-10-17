@@ -45,7 +45,7 @@ const Dashboard = () => {
     return nights > 0 ? `${nights} night${nights > 1 ? 's' : ''}` : 'Invalid dates';
   };
 
-  // ✅ Fetch only successful bookings for stats
+  // Fetch paid bookings for stats
   const fetchStats = async () => {
     setIsStatsLoading(true);
     try {
@@ -56,17 +56,17 @@ const Dashboard = () => {
 
       const allBookings = response.data.data?.data || [];
 
-      // ✅ Filter successful bookings
-      const successfulBookings = allBookings.filter((b) => b.status === 'success');
+      // Filter paid bookings
+      const paidBookings = allBookings.filter((b) => b.payment_status === 'paid');
 
-      const totalRevenue = successfulBookings.reduce(
-        (sum, b) => sum + parseFloat(b.amount_paid || 0),
+      const totalRevenue = paidBookings.reduce(
+        (sum, b) => sum + parseFloat(b.total_amount || 0),
         0
       );
 
       setStats({
         total_revenue: totalRevenue,
-        total_bookings: successfulBookings.length,
+        total_bookings: paidBookings.length,
       });
     } catch (error) {
       console.error('Error fetching booking stats:', error.response || error);
@@ -107,7 +107,7 @@ const Dashboard = () => {
     }
   };
 
-  // ✅ Fetch only successful bookings for table
+  // Fetch paid bookings for table
   const fetchBookings = async () => {
     setIsBookingsLoading(true);
     try {
@@ -119,10 +119,10 @@ const Dashboard = () => {
 
       const fetchedBookings = response.data.data?.data || [];
 
-      // ✅ Only include successful bookings
-      const successfulBookings = fetchedBookings.filter((b) => b.status === 'success');
+      // Only include paid bookings
+      const paidBookings = fetchedBookings.filter((b) => b.payment_status === 'paid');
 
-      setBookings(successfulBookings.slice(0, 3));
+      setBookings(paidBookings.slice(0, 3));
     } catch (error) {
       console.error('Error fetching bookings:', error.response || error);
       setError('Failed to fetch bookings');
@@ -168,13 +168,13 @@ const Dashboard = () => {
 
   const statCards = [
     {
-      title: 'Total Booking',
+      title: 'Total Booking Revenue',
       value: isStatsLoading ? 'Loading...' : formatCurrency(stats.total_revenue),
       icon: <FaMoneyBillWave className="text-3xl text-white" />,
       bgColor: 'bg-tetClr',
     },
     {
-      title: 'Total Ticket',
+      title: 'Total Ticket Revenue',
       value: isEventDataLoading ? 'Loading...' : formatCurrency(eventRevenue),
       icon: <FaMoneyBillWave className="text-3xl text-white" />,
       bgColor: 'bg-tetClr',
@@ -247,7 +247,7 @@ const Dashboard = () => {
         {/* Latest Bookings Table */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} className="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
           <div className="p-6 border-b border-gray-200 bg-tetClr/50 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Latest Successful Bookings</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Latest Paid Bookings</h2>
           </div>
           <div className="overflow-x-auto">
             {isBookingsLoading ? (
@@ -263,7 +263,7 @@ const Dashboard = () => {
             ) : error && !bookings.length ? (
               <div className="p-6 text-center text-red-500 text-sm">{error}</div>
             ) : bookings.length === 0 ? (
-              <div className="p-6 text-center text-gray-600 text-sm">No successful bookings found</div>
+              <div className="p-6 text-center text-gray-600 text-sm">No paid bookings found</div>
             ) : (
               <table className="w-full text-sm text-left text-gray-700">
                 <thead className="bg-tetClr/20 text-gray-800">
@@ -299,7 +299,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Latest Transactions Table (unchanged) */}
+        {/* Latest Transactions Table */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }} className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="p-6 border-b border-gray-200 bg-tetClr/50 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Latest Event Transactions</h2>

@@ -79,7 +79,6 @@ const Booking = () => {
     }
   };
 
-
   const fetchBookings = async (params = {}, pageUrl = `${API_URL}/api/bookings`) => {
     setIsTableLoading(true);
     try {
@@ -110,14 +109,18 @@ const Booking = () => {
   };
 
   const fetchBookingDetails = async (id) => {
+    console.log('Starting fetchBookingDetails for booking ID:', id);  // Confirms the function is called
     try {
       const response = await axios.get(`${API_URL}/api/bookings/${id}`, {
         headers: getAuthHeaders(),
         withCredentials: true,
       });
+      console.log('Full API response data:', response.data);  // Logs the entire response to inspect structure
       setSelectedBooking(response.data.data);
+      // Log transactions (stringified to capture exact state)
+      console.log('All transactions for booking ID', id, ':', JSON.stringify(response.data.data.transactions || 'No transactions found'));
     } catch (error) {
-      console.error('Error fetching booking details:', error.response || error);
+      console.error('Error fetching booking details:', error.message, error.response?.data || error);  // More detailed error log
     } finally {
       setShowModal(true);
     }
@@ -359,6 +362,8 @@ const Booking = () => {
                 <option value="">All Statuses</option>
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
+                <option value="checked_in">Checked In</option>
+                <option value="checked_out">Checked Out</option>
               </select>
             </div>
             <div>
@@ -503,7 +508,7 @@ const Booking = () => {
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => handleCheckIn(booking.id)}
-                          disabled={booking.status === 'checked_in'}
+                          disabled={booking.status === 'checked_in' || booking.status === 'checked_out'}
                           className="text-green-600 hover:text-green-600/80 transition-colors duration-200 disabled:opacity-50"
                           title="Check In"
                         >
@@ -647,6 +652,10 @@ const Booking = () => {
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedBooking.status === 'confirmed'
                           ? 'bg-green-100 text-green-800'
+                          : selectedBooking.status === 'checked_in'
+                          ? 'bg-blue-100 text-blue-800'
+                          : selectedBooking.status === 'checked_out'
+                          ? 'bg-gray-100 text-gray-800'
                           : 'bg-yellow-100 text-yellow-800'
                         }`}
                     >

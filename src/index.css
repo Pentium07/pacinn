@@ -8,6 +8,8 @@
   --color-tetClr: #CCA000;
 }
 
+
+
 /* .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -55,4 +57,11 @@
 html, body {
   overflow-x: hidden;
 }
-
+/* body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.94); 
+  z-index: 9999;
+  pointer-events: none; 
+} */
